@@ -34,8 +34,8 @@
 
 - 既存互換: これまでのカメラ配列形式を引き続き受理する。
 - 新規拡張: 以下構造を受理する。
-  - `camera`: 既存カメラ配列
-  - `radar`: Radar 外部行列配列（`radar_external`, `rowMajor`）
+  - `camera` または `cameras`: カメラ配列
+  - `radar` または `radars`: Radar 外部行列配列（`radar_external`, `rowMajor`）
 - `radar` 未定義は許容し、Radar なしモードとして扱う。
 
 ### 2. 座標変換責務
@@ -58,6 +58,10 @@
 ### データ契約
 
 - backend は `camera_config` を正規化して解釈し、Radar 外部行列が存在する場合は Radar 点群を LiDAR 座標へ変換する。
+- 正規化対象は以下 3 形式である。
+  - カメラ配列単体（既存形式）
+  - `{ cameras, radars }`
+  - `{ camera, radar }`
 - frontend は `pointLayers.radar` の点群受信時、すでに LiDAR 座標系である前提で描画する。
 - 既存形式の `camera_config` では Radar 変換をスキップし、既存動作を維持する。
 
@@ -78,7 +82,7 @@
 
 ### backend
 
-- `camera_config` 解析に新旧互換ロジックを追加する。
+- `camera_config` 解析に新旧互換ロジックを追加する（`cameras/camera`、`radars/radar` 両対応）。
 - Radar 外部行列が定義される場合、Radar 点群を LiDAR 座標へ変換する。
 - 点属性は `x,y,z,snr/intensity` を保持し、追加属性は無視する。
 
@@ -99,7 +103,7 @@
 
 ### 単体テスト
 
-- `camera_config` 正規化（配列形式 / `{ camera, radar }` 形式）。
+- `camera_config` 正規化（配列形式 / `{ cameras, radars }` 形式 / `{ camera, radar }` 形式）。
 - Radar 表示モード切替（LiDAR/Radar/Both）。
 - Radar 着色属性選択、属性欠損時フォールバック。
 

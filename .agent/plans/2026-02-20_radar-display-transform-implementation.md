@@ -19,7 +19,7 @@ Display パネル上での Radar 独立制御が求められる。
 
 In-scope:
 
-- `camera_config` の新旧互換パース（配列形式 / `{ camera, radar }` 形式）を実装する。
+- `camera_config` の新旧互換パース（配列形式 / `{ cameras, radars }` / `{ camera, radar }`）を実装する。
 - Radar 座標変換契約を backend へ明示し、frontend は変換済みデータ前提で処理する。
 - Display パネルへ Radar レイヤー選択と Radar 専用着色設定（属性、自動正規化、カラーマップ）を追加する。
 - 単体テスト、既存 E2E スモーク、手動確認を更新する。
@@ -36,6 +36,7 @@ Out-of-scope（非目標）:
 - 契約: `camera_config` は新旧形式を受理し、Radar 行列欠損時は安全にフォールバックする。
 - UI: ユーザーが LiDAR/Radar/Both を選択でき、Radar の属性着色を独立制御できる。
 - 可用性: Radar 読込失敗や属性欠損時でも LiDAR 注釈作業を継続できる。
+- 検証性: backend 変換結果は、現行データの `camera_config.radars`（または `radar`）に含まれる行列を入力とした検証で確認できること。
 
 ## Approach
 
@@ -54,7 +55,9 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 - Phase 1: 仕様固定とテスト先行
   - `camera_config` 新旧形式と Radar 表示設定の期待挙動をテストで固定する。
 - Phase 2: `camera_config` 正規化とデータ契約反映
-  - frontend の正規化関数と型定義を拡張し、Radar メタ情報を扱えるようにする。
+  - frontend の正規化関数と型定義を拡張し、`cameras/camera` と `radars/radar` の両形式を扱えるようにする。
+- Phase 2.5: backend 座標変換の確認観点固定
+  - 現行データの `camera_config.radars`（または `radar`）行列を使い、変換前後の座標検証手順を固定する。
 - Phase 3: 描画・状態管理の Radar 独立化
   - Radar レイヤー表示モードと Radar 専用着色 Uniform を分離適用する。
 - Phase 4: Display パネル拡張
@@ -66,13 +69,14 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 
 - [ ] Phase 1: 仕様固定とテスト先行
 - [ ] Phase 2: `camera_config` 正規化とデータ契約反映
+- [ ] Phase 2.5: backend 座標変換の確認観点固定
 - [ ] Phase 3: 描画・状態管理の Radar 独立化
 - [ ] Phase 4: Display パネル拡張
 - [ ] Phase 5: 検証・ドキュメント更新
 
 ## Acceptance Criteria
 
-- `camera_config` の配列形式と `{ camera, radar }` 形式の双方でフレーム読込が成立する。
+- `camera_config` の配列形式 / `{ cameras, radars }` / `{ camera, radar }` の各形式でフレーム読込が成立する。
 - Display パネルで `LiDAR のみ / Radar のみ / 両方` 切替が機能する。
 - Radar 着色設定（`snr/intensity`、自動正規化、カラーマップ）が描画へ反映される。
 - Radar 欠損または属性欠損時に LiDAR 注釈フローが継続できる。
@@ -82,19 +86,25 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 - Unit:
   - `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-editor/utils/common.spec.ts`
   - `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-render/PointCloud.spec.ts`
+- Backend:
+  - 現行データセットの `camera_config` から `radars`（または `radar`）行列を取得し、同一フレームで
+    Radar 点群の変換前後座標を比較して、行列適用結果が期待どおりであることを確認する。
+  - 必要に応じて backend 側の変換ロジック単体テストを追加し、代表点で数値比較を行う。
 - Build:
   - `npm --prefix frontend/pc-tool run build`
 - E2E（環境変数設定済み前提）:
-  - `npm --prefix frontend/pc-tool exec playwright test e2e/radar-overlay.spec.ts`
+  - `npm --prefix frontend/pc-tool run test:e2e -- --grep \"@scenario|@smoke\"`
 - Manual:
   - LiDAR-only データ、LiDAR+Radar データ、Radar 属性欠損データの 3 ケースで画面確認する。
 
 ## Rollback Plan
 
-- Radar 専用 UI を feature flag 相当で非表示化し、既存 LiDAR 設定のみへ戻す。
+- Radar 専用 UI 変更を差分ごとに戻し、既存 LiDAR 設定のみの表示へ戻す。
 - Radar 独立 Uniform 適用が不安定な場合は `setSharedPointUniforms` のみ適用へ切り戻す。
 - `camera_config` 新形式パースで不具合が出た場合は既存配列形式優先の分岐へ戻す。
 
 ## Decisions / Changes
 
 - 2026-02-20: 座標変換責務は backend に固定し、frontend は変換済み Radar の描画と UI 拡張に集中する方針とした。
+- 2026-02-20: `camera_config` は `cameras/camera` と `radars/radar` の両形式を受理対象とする方針に更新した。
+- 2026-02-20: backend 変換確認は新規配布テストデータを待たず、現行データの `radars/radar` 行列で検証する方針に更新した。
