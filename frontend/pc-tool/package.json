@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": " vite build --config vite.config.build.ts"
+    "build": " vite build --config vite.config.build.ts",
+    "test:unit": "vitest"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^6.0.1",
@@ -60,6 +61,7 @@
     "lint-staged": "^12.3.7",
     "typescript": "^4.5.4",
     "vite": "^2.8.0",
+    "vitest": "^4.0.18",
     "vue-tsc": "^0.29.8"
   }
 }
