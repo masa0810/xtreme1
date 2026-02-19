@@ -601,8 +601,10 @@ public class UploadDataUseCase {
         if (DatasetTypeEnum.IMAGE.equals(datasetType)) {
             return file.isDirectory() && filename.startsWith(Constants.IMAGE);
         } else {
-            return file.isDirectory() && (filename.startsWith(Constants.CAMERA_IMAGE) || filename.startsWith(LIDAR_POINT_CLOUD) ||
-                    filename.equalsIgnoreCase(CAMERA_CONFIG));
+            return file.isDirectory() && (filename.startsWith(Constants.CAMERA_IMAGE)
+                    || filename.startsWith(LIDAR_POINT_CLOUD)
+                    || filename.startsWith(RADAR_POINT_CLOUD)
+                    || filename.equalsIgnoreCase(CAMERA_CONFIG));
         }
     }
 

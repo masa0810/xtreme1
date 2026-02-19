@@ -69,6 +69,13 @@ public interface Constants {
     String LIDAR_POINT_CLOUD_PATTERN = String.format("%s_\\d", LIDAR_POINT_CLOUD);
 
     /**
+     * radar_point_cloud
+     */
+    String RADAR_POINT_CLOUD = "radar_point_cloud";
+
+    String RADAR_POINT_CLOUD_PATTERN = String.format("%s_\\d", RADAR_POINT_CLOUD);
+
+    /**
      * image
      */
     String POINT_CLOUD_IMG = "image";

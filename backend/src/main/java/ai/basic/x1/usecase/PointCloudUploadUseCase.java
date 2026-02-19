@@ -26,8 +26,7 @@ public class PointCloudUploadUseCase {
         var sceneNames = new LinkedHashSet<String>();
         for (var f : sceneFile.listFiles()) {
             var filename = f.getName().toLowerCase();
-            var boo = f.isDirectory() && ReUtil.isMatch(Constants.LIDAR_POINT_CLOUD_PATTERN, filename);
-            if (boo) {
+            if (f.isDirectory() && isPointCloudSensorDir(filename)) {
                 var list = Arrays.stream(f.listFiles()).filter(fl -> Constants.PCD_SUFFIX.equalsIgnoreCase(FileUtil.getSuffix(fl))).map(uploadDataUseCase::getFilename).collect(Collectors.toSet());
                 sceneNames.addAll(list);
             }
@@ -61,8 +60,13 @@ public class PointCloudUploadUseCase {
      */
     private void getPointCloudParentFile(File file, Set<File> pointCloudParentList) {
         var filename = file.getName().toLowerCase().trim();
-        if (ReUtil.isMatch(Constants.LIDAR_POINT_CLOUD_PATTERN, filename) && FileUtil.isDirectory(file)) {
+        if (FileUtil.isDirectory(file) && isPointCloudSensorDir(filename)) {
             pointCloudParentList.add(file.getParentFile());
         }
+    }
+
+    private boolean isPointCloudSensorDir(String filename) {
+        return ReUtil.isMatch(Constants.LIDAR_POINT_CLOUD_PATTERN, filename)
+                || ReUtil.isMatch(Constants.RADAR_POINT_CLOUD_PATTERN, filename);
     }
 }

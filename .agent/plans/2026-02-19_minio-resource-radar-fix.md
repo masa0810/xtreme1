@@ -65,7 +65,7 @@ Out-of-scope（非目標）:
 ## Progress
 
 - [x] Phase 0: 事実固定（API/URL 403、zip 内容、取り込み結果）
-- [ ] Phase 1: MinIO 配信経路の修正と再検証
+- [x] Phase 1: MinIO 配信経路の修正と再検証
 - [ ] Phase 2: Radar 取り込み経路の修正と再取り込み
 - [ ] Phase 3: UI/E2E 検証とドキュメント更新
 
@@ -102,3 +102,5 @@ Out-of-scope（非目標）:
 
 - 2026-02-19: 本計画は、`topic/radar-pointcloud-implementation` 完了後に残った
   画像非表示（403）と Radar 欠落の後続対応として起票した。
+- 2026-02-19: backend をローカル検証できるよう `basicai/xtreme1-backend:v0.9.1-islab`
+  の compose build を有効化し、Dockerfile の base image/依存解決を更新した。

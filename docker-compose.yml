@@ -57,18 +57,16 @@ services:
           "curl",
           "--silent",
           "-f",
-          "http://minio:9000/minio/health/ready"
+          "http://localhost:9000/minio/health/ready"
         ]
       interval: 10s
       timeout: 10s
       start_period: 10s
       retries: 10
   backend:
-    # By default, Compose will pull image from Docker Hub when no local image found.
-    image: basicai/xtreme1-backend:v0.9.1
-    pull_policy: always
-    # Uncomment this line and comment previous line to build image locally, not pull from Docker Hub.
-    # build: ./backend
+    image: basicai/xtreme1-backend:v0.9.1-islab
+    pull_policy: never
+    build: ./backend
     ports:
       - 8290:8080
     # volumes:

@@ -15,3 +15,15 @@
     いずれかが変化し、署名不一致を起こしている。
 - 13:28 #note nginx 設定の試行修正（`Host` ヘッダ変更）は
   単独では改善しなかったため取り込まず、次フェーズで再設計する。
+- 13:55 #fix `deploy/nginx/conf.d/default.conf` の `/minio/` を
+  `proxy_pass http://minio:9000/;` + `Host minio:9000` に変更した。
+- 14:02 #fix `docker-compose.yml` の minio healthcheck を
+  `http://localhost:9000/minio/health/ready` に変更した。
+- 14:05 #verify `camera_image_0` の presigned URL 取得で HTTP 200 を確認し、
+  MinIO 署名不一致（403）が解消したことを確認した。
+- 14:11 #fix point cloud 取込で `radar_point_cloud_*` を受理するよう
+  `UploadDataUseCase` / `PointCloudUploadUseCase` / `Constants` を修正した。
+- 14:13 #test `UploadDataUseCaseTest` を追加し、
+  `radar_point_cloud_*` 受理の RED→GREEN を確認した。
+- 14:22 #fix backend ローカル build を有効化するため
+  `backend/Dockerfile` の base image と依存解決を更新した。
