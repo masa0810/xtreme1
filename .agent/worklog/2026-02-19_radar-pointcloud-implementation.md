@@ -109,3 +109,15 @@
 - 12:08 #verify `npm --prefix frontend/main run build` は PASS した。
 - 12:09 #issue フル `docker build` は再試行時に `image-tool` の
   `npm install` フェーズで長時間待機し、ネットワーク要因のため中断した。
+- 12:20 #decision `frontend/Dockerfile` に `npm` の取得リトライ/タイムアウト設定を追加した。
+  - `NPM_CONFIG_FETCH_RETRIES=5`
+  - `NPM_CONFIG_FETCH_RETRY_FACTOR=2`
+  - `NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000`
+  - `NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000`
+  - `NPM_CONFIG_FETCH_TIMEOUT=300000`
+- 12:26 #verify 上記設定後、`docker build -t basicai/xtreme1-frontend:v0.9.1-islab ./frontend` が
+  `main` / `image-tool` / `pc-tool` / `text-tool` を通過して成功した。
+- 12:27 #verify `docker compose up -d frontend nginx` 後、
+  `frontend` が `basicai/xtreme1-frontend:v0.9.1-islab` で起動することを確認した。
+- 12:28 #verify `test:e2e (@scenario|@smoke)` を再実行し、
+  `4 passed / 1 skipped` を確認した。
