@@ -59,8 +59,9 @@ export function createViewConfig(fileConfig: IFileConfig[], cameraInfo: any[]) {
         }
     });
     viewConfig = viewConfig.filter((e) => !!e);
+    const cameraInfoList = normalizeCameraInfoList(cameraInfo);
     viewConfig.forEach((config, index) => {
-        let info = cameraInfo[index];
+        let info = cameraInfoList[index];
 
         let translateInfo = translateCameraConfig(info);
         if (!translateInfo) return;
@@ -76,6 +77,16 @@ export function createViewConfig(fileConfig: IFileConfig[], cameraInfo: any[]) {
     pointsUrl = pointLayers.lidar?.url || pointsUrl;
 
     return { pointsUrl, config: viewConfig, pointLayers };
+}
+
+function normalizeCameraInfoList(cameraInfo: any): any[] {
+    if (Array.isArray(cameraInfo)) {
+        return cameraInfo;
+    }
+    if (Array.isArray(cameraInfo?.cameras)) {
+        return cameraInfo.cameras;
+    }
+    return [];
 }
 
 export function rand(start: number, end: number) {

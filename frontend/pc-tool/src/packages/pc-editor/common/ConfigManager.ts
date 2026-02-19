@@ -1,7 +1,7 @@
 import Editor from '../Editor';
 import { getColorRangeByArray, countVisiblePointN } from '../utils';
 import * as THREE from 'three';
-import { Points, PointsMaterial } from 'pc-render';
+import { Points } from 'pc-render';
 import { debounce } from 'lodash';
 
 export default class ConfigManager {
@@ -15,7 +15,7 @@ export default class ConfigManager {
 
     initConfig() {
         let config = this.editor.state.config;
-        this.editor.pc.material.setUniforms({
+        this.editor.pc.setSharedPointUniforms({
             // trimType: config.type === 'range-only' ? 1 : 2,
             pointSize: config.pointSize * 10,
             edgeColor: config.edgeColor,
@@ -65,13 +65,12 @@ export default class ConfigManager {
         config.pointHeight[1] = Math.min(config.pointHeight[1], pointInfo.max.z);
         // config.groundValue = ground;
         this.editor.pc.ground.plane.constant = config.pointHeight[0];
-        let material = points.material as PointsMaterial;
-        material.setOption({
+        this.editor.pc.setSharedPointOption({
             hasIntensity: pointInfo.hasIntensity,
             hasRGB: pointInfo.hasRGB,
             hasVelocity: pointInfo.hasVelocity,
         });
-        material.setUniforms({
+        this.editor.pc.setSharedPointUniforms({
             // groundValue: ground,
             colorRoad: -1,
             pointHeight: new THREE.Vector2().fromArray(config.pointHeight),

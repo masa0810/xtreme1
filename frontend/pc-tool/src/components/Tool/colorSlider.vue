@@ -161,7 +161,6 @@
     import { computed } from 'vue';
     import { ColorModeEnum, utils } from 'pc-editor';
     import * as THREE from 'three';
-    import { PointsMaterial } from 'pc-render';
     import * as _ from 'lodash';
     import { useInjectEditor } from '../../state';
     import * as locale from './lang';
@@ -205,26 +204,24 @@
     };
 
     const update = (type: 'pointHeight' | 'edgeColor' | 'singleColor' | 'pointVelocity') => {
-        let points = editor.pc.groupPoints.children[0] as THREE.Points;
-        let material = points.material as PointsMaterial;
         switch (type) {
             case 'edgeColor':
-                material.setUniforms({
+                editor.pc.setSharedPointUniforms({
                     edgeColor: config.edgeColor,
                 });
                 break;
             case 'singleColor':
-                material.setUniforms({
+                editor.pc.setSharedPointUniforms({
                     singleColor: config.singleColor,
                 });
                 break;
             case 'pointVelocity':
-                material.setUniforms({
+                editor.pc.setSharedPointUniforms({
                     pointVelocity: new THREE.Vector2().fromArray(config.pointVelocity),
                 });
                 break;
             case 'pointHeight':
-                material.setUniforms({
+                editor.pc.setSharedPointUniforms({
                     pointHeight: new THREE.Vector2().fromArray(config.pointHeight),
                 });
                 editor.pc.ground.plane.constant = config.pointHeight[0];

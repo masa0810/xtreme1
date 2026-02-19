@@ -270,7 +270,7 @@
     import { useInjectState, useInjectEditor } from '../../state';
     // import useRenderConfig from '../hook/useRenderConfig';
     import { RetweetOutlined } from '@ant-design/icons-vue';
-    import { PointsMaterial, Event, Image2DRenderView } from 'pc-render';
+    import { Event, Image2DRenderView } from 'pc-render';
     // import useLang from '../../hook/useLang';
     import * as locale from './lang';
     import { IConfig } from './useTool';
@@ -346,8 +346,6 @@
     }, 100);
 
     let update = _.throttle((type: string) => {
-        let points = pc.groupPoints.children[0] as THREE.Points;
-        let material = points.material as PointsMaterial;
         let options = {} as any;
         switch (type) {
             case 'pointSize':
@@ -376,7 +374,7 @@
                 break;
         }
 
-        material.setUniforms(options);
+        pc.setSharedPointUniforms(options);
         pc.render();
         // console.log('update config', type, options);
     }, 200);

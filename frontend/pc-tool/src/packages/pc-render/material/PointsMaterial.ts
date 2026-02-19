@@ -92,10 +92,8 @@ function getShaderCode(
         return pos.x >= min.x && pos.x <= max.x && pos.y >= min.y && pos.y <= max.y && pos.z >= min.z && pos.z <= max.z;
     }
 
-    vec3 getColor(float value){
+    vec3 getColor(float value, float min, float max){
         vec3 color = vec3(1,0,0);
-        float min = pointHeight.x;
-        float max = pointHeight.y;
         if(colorRoad>0.0) min = 0.0;
 
         if(colorRoad>0.0&&road>0.0){
@@ -162,7 +160,7 @@ function getShaderCode(
             }
             #endif
         } else {
-            vColor = getColor(position.z);
+            vColor = getColor(position.z, pointHeight.x, pointHeight.y);
         }
         if(openIntensity > 0.0){
             #ifdef FLAG_INTENSITY

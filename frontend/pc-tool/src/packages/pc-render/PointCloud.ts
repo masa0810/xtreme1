@@ -9,6 +9,7 @@ import { ITransform } from './type';
 import { isArray } from 'lodash';
 import TWEEN from '@tweenjs/tween.js';
 import PointsMaterial from './material/PointsMaterial';
+import type { IUniformOption } from './material/PointsMaterial';
 import { Points } from './points';
 import * as _ from 'lodash';
 
@@ -328,6 +329,16 @@ export default class PointCloud extends THREE.EventDispatcher {
             this.groupPoints.add(this.radarPoints);
         }
         return this.radarPoints;
+    }
+
+    setSharedPointUniforms(option: IUniformOption) {
+        this.material.setUniforms(option);
+        this.radarMaterial.setUniforms(option);
+    }
+
+    setSharedPointOption(option: Parameters<PointsMaterial['setOption']>[0]) {
+        this.material.setOption(option);
+        this.radarMaterial.setOption(option);
     }
 
     // render

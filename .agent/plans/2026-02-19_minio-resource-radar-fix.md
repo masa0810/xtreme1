@@ -11,9 +11,10 @@
 
 ## Context
 
-`Radar Fusion Test` データセットで画像および点群 URL が 403 を返し、pc-tool で画像が表示されない。
-加えて、zip には `radar_point_cloud_0` が含まれるにもかかわらず、取り込み後の `content` から Radar が欠落している。
-本件は表示確認と Radar 重畳確認の前提を満たさないため、先に取り込み経路と配信経路を修正する必要がある。
+`Radar Fusion Test` データセットで画像および点群 URL が 403 を返し、pc-tool で画像が表示されなかった。
+加えて、zip には `radar_point_cloud_0` が含まれるにもかかわらず、取り込み後の `content` から Radar が欠落していた。
+上記は解消したが、`camera_config` が `{ cameras: [...] }` 形式のときに
+frontend が配列前提で読み出して画像設定を生成できない不具合が残っている。
 
 ## Scope
 
@@ -61,6 +62,9 @@ Out-of-scope（非目標）:
   - 修正後、別名 dataset へ zip を再アップロードして再検証する。
 - Phase 3: UI/E2E 検証とドキュメント更新
   - `Radar broken` は本計画では作成しない（`skip` 許容）。
+- Phase 4: camera_config 互換対応の frontend 修正と反映確認
+  - `camera_config` の配列/ラッパー形式両対応を入れる。
+  - unit test を追加し、UI で画像表示を再確認する。
 
 ## Progress
 
@@ -68,6 +72,7 @@ Out-of-scope（非目標）:
 - [x] Phase 1: MinIO 配信経路の修正と再検証
 - [x] Phase 2: Radar 取り込み経路の修正と再取り込み
 - [x] Phase 3: UI/E2E 検証とドキュメント更新
+- [ ] Phase 4: camera_config 互換対応の frontend 修正と反映確認
 
 ## Acceptance Criteria
 
@@ -77,6 +82,7 @@ Out-of-scope（非目標）:
   `camera_image_0` / `lidar_point_cloud_0` / `radar_point_cloud_0`
   の 3 系統が `content` に揃う。
 - `E2E_SCENARIO_LIDAR_RADAR_URL` で画面表示時に Radar UI が表示される。
+- `camera_config` が `{ cameras: [...] }` 形式でもカメラ画像が表示される。
 - `npm --prefix frontend/pc-tool run test:unit` が PASS する。
 - `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` が
   `LiDAR only` / `LiDAR + Radar` / `Radar UI` の PASS を満たす。
@@ -107,3 +113,5 @@ Out-of-scope（非目標）:
 - 2026-02-19: `Radar Fusion Test 2`（datasetId=3, dataId=29）で
   `camera_image_0` / `lidar_point_cloud_0` / `radar_point_cloud_0`
   の URL 200 と E2E（`@scenario|@smoke`）4 PASS / 1 SKIP を確認した。
+- 2026-02-19: 画像未表示の追加要因として、`camera_config` が
+  `{ cameras: [...] }` 形式のとき `createViewConfig` が空設定を返す不整合を特定した。

@@ -37,4 +37,31 @@ describe('createViewConfig', () => {
         expect(result.pointsUrl).toBe('/lidar.pcd');
         expect(result.pointLayers.lidar?.url).toBe('/lidar.pcd');
     });
+
+    it('camera_config が cameras 配列ラッパー形式でも画像設定を生成する', () => {
+        const fileConfig = [
+            { dirName: 'pointcloud', url: '/lidar.pcd', name: 'lidar' },
+            { dirName: 'camera_image_0', url: '/cam0.png', name: '000100.png' },
+        ] as any;
+        const cameraInfo = {
+            cameras: [
+                {
+                    cameraInternal: { fx: 1, fy: 1, cx: 2, cy: 3 },
+                    cameraExternal: [
+                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1,
+                    ],
+                    width: 1225,
+                    height: 820,
+                    rowMajor: true,
+                },
+            ],
+        } as any;
+
+        const result = createViewConfig(fileConfig, cameraInfo);
+        expect(result.config).toHaveLength(1);
+        expect(result.config[0].imgUrl).toBe('/cam0.png');
+    });
 });
