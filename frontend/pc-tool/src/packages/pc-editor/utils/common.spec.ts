@@ -29,4 +29,12 @@ describe('createViewConfig', () => {
         expect(result.pointLayers.lidar?.url).toBe('/lidar-only.pcd');
         expect(result.pointLayers.radar?.url).toBeUndefined();
     });
+
+    it('後方互換として LiDAR 単体時も既存呼び出しを壊さない', () => {
+        const fileConfig = [{ dirName: 'pointcloud', url: '/lidar.pcd', name: 'lidar' }] as any;
+        const result = createViewConfig(fileConfig, []);
+
+        expect(result.pointsUrl).toBe('/lidar.pcd');
+        expect(result.pointLayers.lidar?.url).toBe('/lidar.pcd');
+    });
 });

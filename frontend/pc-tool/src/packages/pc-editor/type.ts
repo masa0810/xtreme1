@@ -421,6 +421,10 @@ export interface IDataResource {
     time: number;
     // position
     pointsUrl: string;
+    pointLayers?: {
+        lidar?: { url: string; name?: string };
+        radar?: { url: string; name?: string };
+    };
     pointsData: Record<PointAttr, number[]>;
     intensityRange?: [number, number];
     ground?: number;
