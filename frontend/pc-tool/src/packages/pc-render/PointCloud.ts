@@ -29,9 +29,12 @@ export default class PointCloud extends THREE.EventDispatcher {
     timeStamp: number = 0;
     //
     material: PointsMaterial = new PointsMaterial();
+    radarMaterial: PointsMaterial = new PointsMaterial();
     selectColor: THREE.Color = new THREE.Color(1, 0, 0);
     highlightColor: THREE.Color = new THREE.Color(1, 0, 0);
     private renderTimer: number = 0;
+    private lidarPoints?: Points;
+    private radarPoints?: Points;
 
     constructor() {
         super();
@@ -271,36 +274,43 @@ export default class PointCloud extends THREE.EventDispatcher {
 
     // *********************************************
     setPointCloudData(data: any) {
-        let points;
-        if (this.groupPoints.children.length === 0) {
-            points = new Points(this.material);
-            // points.addEventListener(Event.POINTS_CHANGE, () => {
-            //     this.dispatchEvent({ type: Event.POINTS_CHANGE });
-            //     this.render();
-            // });
-            this.groupPoints.add(points);
-        } else {
-            points = this.groupPoints.children[0] as Points;
-        }
+        const points = this.getOrCreateLidarPoints();
         // this.dispatchEvent({ type: Event.LOAD_POINT_BEFORE });
         points.updateData(data);
         this.render();
         // this.dispatchEvent({ type: Event.LOAD_POINT_AFTER });
     }
+    setRadarPointCloudData(data: any) {
+        const points = this.getOrCreateRadarPoints();
+        points.updateData(data);
+        this.render();
+    }
+    getActiveAnnotationLayer() {
+        return 'lidar' as const;
+    }
     loadPointCloud(url: string, onProgress?: (percent: number) => void) {
-        let points;
-        if (this.groupPoints.children.length === 0) {
-            // debugger;
-            points = new Points(this.material);
-            points.addEventListener(Event.POINTS_CHANGE, () => {
+        const points = this.getOrCreateLidarPoints();
+        return points.loadUrl(url, onProgress);
+    }
+
+    getOrCreateLidarPoints() {
+        if (!this.lidarPoints) {
+            this.lidarPoints = new Points(this.material);
+            this.lidarPoints.addEventListener(Event.POINTS_CHANGE, () => {
                 this.dispatchEvent({ type: Event.POINTS_CHANGE });
                 this.render();
             });
-            this.groupPoints.add(points);
-        } else {
-            points = this.groupPoints.children[0] as Points;
+            this.groupPoints.add(this.lidarPoints);
         }
-        return points.loadUrl(url, onProgress);
+        return this.lidarPoints;
+    }
+
+    getOrCreateRadarPoints() {
+        if (!this.radarPoints) {
+            this.radarPoints = new Points(this.radarMaterial);
+            this.groupPoints.add(this.radarPoints);
+        }
+        return this.radarPoints;
     }
 
     // render

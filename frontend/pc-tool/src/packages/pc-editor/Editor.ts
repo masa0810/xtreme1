@@ -360,6 +360,7 @@ export default class Editor extends THREE.EventDispatcher {
 
     setRadarPointCloudData(data: any) {
         this.radarPointsData = data;
+        this.pc.setRadarPointCloudData(data);
     }
 
     frameChange(frames?: IFrame | IFrame[]) {
