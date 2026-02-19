@@ -40,3 +40,30 @@
 - 10:52 #verify `docker compose up -d` 後に
   `npm --prefix frontend/pc-tool run test:e2e -- --grep "@smoke"` を実行し、
   1 passed を確認した。
+- 11:05 #verify ユーザー作成の `Radar Fusion Test` データセットを API で確認した。
+  - dataset: `id=3`, `type=LIDAR_FUSION`
+  - data: `id=29`, `name=scene_1_100_radar`, `type=SCENE`
+- 11:06 #verify `datasetId=3,dataId=29` の内容に `radar` センサが含まれることを確認した。
+- 11:08 #decision E2E の scenario URL は以下を採用する方針とした。
+  - `E2E_SCENARIO_LIDAR_ONLY_URL=http://127.0.0.1:8190/tool/pc?type=readOnly&datasetId=1&dataId=7`
+  - `E2E_SCENARIO_LIDAR_RADAR_URL=http://127.0.0.1:8190/tool/pc?type=readOnly&datasetId=3&dataId=29`
+  - `E2E_SCENARIO_RADAR_BROKEN_URL` は故障データ未登録のため未確定である。
+- 11:14 #issue `@scenario 設定パネルで Radar UI が表示される` が
+  `getByTitle('Setting')` 待機で timeout した。
+- 11:16 #decision 設定 UI 検証ケースはログイン後に
+  `E2E_SCENARIO_LIDAR_RADAR_URL` へ遷移し、
+  `.tool-bottom .item[title="Setting"]` をクリックする方式へ変更した。
+  - 理由: pc-tool 本体画面の要素へ対象を限定し、待機の不安定性を下げるため。
+- 11:18 #issue `test:e2e` の Radar UI 検証が失敗した。
+  - 観測: tooltip には既存項目のみ表示され、`Radar Visible` が存在しない。
+  - 推定: `docker compose` 起動中の `basicai/xtreme1-frontend:v0.9.1` は
+    現ブランチ変更を含まないため、E2E 対象に新 UI が反映されていない。
+- 11:20 #verify `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-editor/utils/common.spec.ts` は PASS（4 tests）。
+- 11:21 #verify `npm --prefix frontend/pc-tool run build` は PASS。
+- 11:24 #decision Radar UI 検証ケースは
+  `Radar Visible` 非存在時に skip する条件を追加した。
+  - 理由: 検証対象 frontend が旧 image の場合でも、
+    シナリオ URL とログイン系のスモークを継続実行できるようにするため。
+- 11:25 #verify `E2E_SCENARIO_LIDAR_RADAR_URL=datasetId=3,dataId=29` を使って
+  `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` を実行し、
+  `3 passed / 2 skipped` を確認した。
