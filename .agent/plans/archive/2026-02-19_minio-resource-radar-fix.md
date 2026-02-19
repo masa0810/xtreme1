@@ -5,7 +5,7 @@
 - Owner: @masa0810
 - Created: 2026-02-19
 - Last updated: 2026-02-19
-- Status: Active
+- Status: Done
 - Related: `.agent/plans/archive/2026-02-19-radar-pointcloud-implementation.md`
 - Work log: `.agent/worklog/2026-02-19_minio-resource-radar-fix.md`
 
@@ -72,7 +72,7 @@ Out-of-scope（非目標）:
 - [x] Phase 1: MinIO 配信経路の修正と再検証
 - [x] Phase 2: Radar 取り込み経路の修正と再取り込み
 - [x] Phase 3: UI/E2E 検証とドキュメント更新
-- [ ] Phase 4: camera_config 互換対応の frontend 修正と反映確認
+- [x] Phase 4: camera_config 互換対応の frontend 修正と反映確認
 
 ## Acceptance Criteria
 
@@ -115,3 +115,5 @@ Out-of-scope（非目標）:
   の URL 200 と E2E（`@scenario|@smoke`）4 PASS / 1 SKIP を確認した。
 - 2026-02-19: 画像未表示の追加要因として、`camera_config` が
   `{ cameras: [...] }` 形式のとき `createViewConfig` が空設定を返す不整合を特定した。
+- 2026-02-19: `camera_config` 互換対応と、Radar の表示設定（Single/Height/Intensity）の
+  LiDAR 同期を適用し、画像表示および配色反映を確認して本計画を完了した。
