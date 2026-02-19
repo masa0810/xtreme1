@@ -59,6 +59,7 @@ export default class Editor extends THREE.EventDispatcher {
     classMap: Map<string, IClassType> = new Map();
     needUpdateFilter: boolean = true;
     eventSource: string = '';
+    radarPointsData: any = null;
 
     cmdManager: CmdManager;
     hotkeyManager: HotkeyManager;
@@ -355,6 +356,10 @@ export default class Editor extends THREE.EventDispatcher {
         this.configManager.updatePointConfig(ground, intensityRange);
         this.dispatchEvent({ type: Event.POINTS_CHANGE });
         // this.dispatchEvent({ type: Event.LOAD_POINT_AFTER });
+    }
+
+    setRadarPointCloudData(data: any) {
+        this.radarPointsData = data;
     }
 
     frameChange(frames?: IFrame | IFrame[]) {
