@@ -89,3 +89,23 @@
 - 11:41 #verify `docker compose up -d frontend nginx` 後、
   frontend container image が `v0.9.1-islab` であることを確認した。
 - 11:42 #verify 上記環境で `test:e2e` を再実行し、`4 passed / 1 skipped` を確認した。
+- 11:49 #issue `docker build -t basicai/xtreme1-frontend:v0.9.1-islab ./frontend` は
+  `frontend/main` build で
+  `Rollup failed to resolve import "vue3-json-viewer/dist/index.css"` により失敗した。
+- 11:53 #decision `systematic-debugging` により原因を特定し、
+  `vue3-json-viewer` の実体（2.4.1）に合わせて
+  `frontend/main/src/main.ts` の import を
+  `vue3-json-viewer/dist/vue3-json-viewer.css` へ変更した。
+  あわせて `frontend/main/package.json` のバージョンを `2.4.1` に固定した。
+- 11:57 #verify 上記修正後、同ビルドは当該 CSS 解決エラーを通過した。
+  新たに `frontend/main/src/views/models/modelPreview/index.vue`（0 byte）に起因する
+  SFC 構文エラーで停止することを確認した。
+- 12:01 #decision `frontend/main/src/views/models/modelPreview/index.vue` に
+  最小テンプレートを追加し、SFC 構文エラーを解消した。
+- 12:06 #verify `docker build -t basicai/xtreme1-frontend:v0.9.1-islab ./frontend` は
+  `main` / `image-tool` build を通過し、`pc-tool` 依存解決フェーズまで進行した。
+  - 初回は `image-tool` の `npm install` で `ERR_SOCKET_TIMEOUT` が発生した。
+  - リトライでは `image-tool` を通過したことを確認した。
+- 12:08 #verify `npm --prefix frontend/main run build` は PASS した。
+- 12:09 #issue フル `docker build` は再試行時に `image-tool` の
+  `npm install` フェーズで長時間待機し、ネットワーク要因のため中断した。

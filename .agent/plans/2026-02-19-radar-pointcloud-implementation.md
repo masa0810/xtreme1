@@ -73,11 +73,11 @@ Out-of-scope（非目標）:
 
 ## Progress
 
-- [ ] Phase 1: `vitest` 導入と `createViewConfig` テスト基盤整備
-- [ ] Phase 2: センサ抽出と `IDataResource` 互換拡張
-- [ ] Phase 3: ローダー分離と多層描画実装
-- [ ] Phase 4: Radar 最小 UI 追加
-- [ ] Phase 5: ビルド・デプロイ・E2E 最終検証
+- [x] Phase 1: `vitest` 導入と `createViewConfig` テスト基盤整備
+- [x] Phase 2: センサ抽出と `IDataResource` 互換拡張
+- [x] Phase 3: ローダー分離と多層描画実装
+- [x] Phase 4: Radar 最小 UI 追加
+- [ ] Phase 5: ビルド・デプロイ・E2E 最終検証（`frontend/main` の別件 build エラー解消待ち）
 
 ### Task 1: テスト基盤の最小追加
 
