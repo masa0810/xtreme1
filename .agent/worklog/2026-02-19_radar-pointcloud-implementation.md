@@ -77,3 +77,15 @@
   `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` を実行し、
   `4 passed / 1 skipped` を確認した。
   - PASS に `@scenario 設定パネルで Radar UI が表示される` を含む。
+- 11:36 #issue `docker build -t basicai/xtreme1-frontend:v0.9.1-islab ./frontend` は
+  `main` build 内で `vue3-json-viewer/dist/index.css` 解決エラーとなり失敗した。
+- 11:39 #decision 既存 image `basicai/xtreme1-frontend:v0.9.1` をベースに、
+  `/usr/share/nginx/html/pc-tool` のみ差し替えた派生 image
+  `basicai/xtreme1-frontend:v0.9.1-islab` を作成した。
+  - build 定義: `FROM basicai/xtreme1-frontend:v0.9.1` + `COPY frontend/dist/pc-tool ...`
+- 11:40 #decision `docker-compose.yml` の frontend を
+  `basicai/xtreme1-frontend:v0.9.1-islab` / `pull_policy: never` に更新した。
+  - 理由: 再起動後もローカル image を継続利用して永続化するため。
+- 11:41 #verify `docker compose up -d frontend nginx` 後、
+  frontend container image が `v0.9.1-islab` であることを確認した。
+- 11:42 #verify 上記環境で `test:e2e` を再実行し、`4 passed / 1 skipped` を確認した。
