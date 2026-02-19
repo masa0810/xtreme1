@@ -58,7 +58,7 @@ Out-of-scope（非目標）:
 
 ## Progress
 
-- [ ] Phase 0: 事実固定（API/URL 403、zip 内容、取り込み結果）
+- [x] Phase 0: 事実固定（API/URL 403、zip 内容、取り込み結果）
 - [ ] Phase 1: MinIO 配信経路の修正と再検証
 - [ ] Phase 2: Radar 取り込み経路の修正と再取り込み
 - [ ] Phase 3: UI/E2E 検証とドキュメント更新
