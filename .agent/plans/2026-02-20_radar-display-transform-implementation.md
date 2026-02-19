@@ -5,7 +5,7 @@
 - Owner: @copilot
 - Created: 2026-02-20
 - Last updated: 2026-02-20
-- Status: Draft
+- Status: Active
 - Related: `.agent/strategy/2026-02-20_radar-display-transform-design.md`
 - Work log: `.agent/worklog/2026-02-20_radar-display-transform-implementation.md`
 
