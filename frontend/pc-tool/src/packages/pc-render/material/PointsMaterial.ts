@@ -42,6 +42,7 @@ function getShaderCode(
     uniform vec3 singleColor;
     uniform float openIntensity;
     uniform float brightness;
+    uniform float globalOpacity;
 
     attribute float road;
     uniform float colorRoad;
@@ -132,7 +133,7 @@ function getShaderCode(
 
     void main()	{
 
-        vOpacity = 1.0;
+        vOpacity = globalOpacity;
         float vDiscard = -1.0;
         float vPointSize = pointSize;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
@@ -266,6 +267,7 @@ export interface IUniformOption {
     colorRoad?: number;
     openIntensity?: 1 | -1;
     brightness?: number;
+    globalOpacity?: number;
     velocityRange?: THREE.Vector2;
     pointVelocity?: THREE.Vector2;
     // intensity
@@ -301,6 +303,7 @@ export default class PointsMaterial extends THREE.RawShaderMaterial {
                 intensityRange: { value: new THREE.Vector2(0, 255) },
                 velocityRange: { value: new THREE.Vector2() },
                 brightness: { value: 1 },
+                globalOpacity: { value: 1 },
                 // filter
                 hasFilterBox: { value: -1 },
                 boxInfo: {

@@ -35,6 +35,8 @@ export default class PointCloud extends THREE.EventDispatcher {
     private renderTimer: number = 0;
     private lidarPoints?: Points;
     private radarPoints?: Points;
+    private radarVisible: boolean = true;
+    private radarOpacity: number = 0.5;
 
     constructor() {
         super();
@@ -77,6 +79,8 @@ export default class PointCloud extends THREE.EventDispatcher {
         this.selection = [];
         this.selectionMap = {};
         this.renderViews = [];
+
+        this.radarMaterial.setUniforms({ globalOpacity: this.radarOpacity });
 
         // test
         // this.initStats();
@@ -285,6 +289,18 @@ export default class PointCloud extends THREE.EventDispatcher {
         points.updateData(data);
         this.render();
     }
+    setRadarVisible(visible: boolean) {
+        this.radarVisible = visible;
+        if (this.radarPoints) {
+            this.radarPoints.visible = visible;
+        }
+        this.render();
+    }
+    setRadarOpacity(opacity: number) {
+        this.radarOpacity = _.clamp(opacity, 0, 1);
+        this.radarMaterial.setUniforms({ globalOpacity: this.radarOpacity });
+        this.render();
+    }
     getActiveAnnotationLayer() {
         return 'lidar' as const;
     }
@@ -308,6 +324,7 @@ export default class PointCloud extends THREE.EventDispatcher {
     getOrCreateRadarPoints() {
         if (!this.radarPoints) {
             this.radarPoints = new Points(this.radarMaterial);
+            this.radarPoints.visible = this.radarVisible;
             this.groupPoints.add(this.radarPoints);
         }
         return this.radarPoints;
