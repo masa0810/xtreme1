@@ -1,4 +1,5 @@
 local/
+.worktrees/
 application-local.yml
 target/
 
