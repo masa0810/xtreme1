@@ -5,7 +5,7 @@
 - Owner: @masa0810
 - Created: 2026-02-19
 - Last updated: 2026-02-19
-- Status: Active
+- Status: Done
 - Related: `.agent/strategy/2026-02-19-radar-pointcloud-design.md`
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
