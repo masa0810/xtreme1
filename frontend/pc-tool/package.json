@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": " vite build --config vite.config.build.ts",
-    "test:unit": "vitest"
+    "test:unit": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^6.0.1",
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@commitlint/cli": "^16.2.3",
     "@commitlint/config-conventional": "^16.2.1",
+    "@playwright/test": "^1.58.2",
     "@types/axios": "^0.14.0",
     "@types/lodash": "^4.14.180",
     "@types/mustache": "^4.1.3",
