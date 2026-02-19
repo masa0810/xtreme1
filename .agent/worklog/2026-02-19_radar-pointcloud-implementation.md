@@ -121,3 +121,11 @@
   `frontend` が `basicai/xtreme1-frontend:v0.9.1-islab` で起動することを確認した。
 - 12:28 #verify `test:e2e (@scenario|@smoke)` を再実行し、
   `4 passed / 1 skipped` を確認した。
+- 12:37 #issue `npm --prefix frontend/pc-tool run test:unit` が
+  `e2e/radar-overlay.spec.ts` を拾って失敗した。
+- 12:38 #decision `frontend/pc-tool/vitest.config.ts` に
+  `include: ['src/**/*.spec.ts']` と `exclude: ['e2e/**']` を追加した。
+  - 理由: unit test 実行対象を明示し、Playwright spec 混入を防ぐため。
+- 12:39 #verify `npm --prefix frontend/pc-tool run test:unit` は PASS。
+- 12:39 #verify `npm --prefix frontend/pc-tool run test:e2e -- --grep \"@scenario|@smoke\"`
+  は `4 passed / 1 skipped` を確認した。
