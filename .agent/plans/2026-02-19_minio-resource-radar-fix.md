@@ -22,6 +22,8 @@ In-scope:
 - `/minio/` 経由の presigned URL で 403 が発生する要因を特定し、修正する。
 - Radar ファイルが dataset content に登録されない要因を特定し、修正する。
 - 修正後に `scene_1_100_radar.zip` 相当データで画像表示と Radar 重畳を確認する。
+- 修正後に、テスト用データを別名 dataset として再アップロードし、
+  再取込結果で検証する。
 - E2E シナリオ URL を更新し、`Radar broken` の検証可否を整理する。
 
 Out-of-scope（非目標）:
@@ -36,6 +38,7 @@ Out-of-scope（非目標）:
 - 完整性: `radar_point_cloud_0` が API の `content` に含まれること。
 - 互換性: 既存 `LiDAR Fusion Trial` の表示挙動を壊さないこと。
 - 検証: `pc-tool test:unit`、`test:e2e(@scenario|@smoke)`、必要な API 確認が通ること。
+- 運用: 再取り込み検証は既存 dataset を上書きせず、別名 dataset で行うこと。
 
 ## Approach
 
@@ -54,7 +57,10 @@ Out-of-scope（非目標）:
 - Phase 0: 事実固定（API/URL 403、zip 内容、取り込み結果）
 - Phase 1: MinIO 配信経路の修正と再検証
 - Phase 2: Radar 取り込み経路の修正と再取り込み
+  - backend の dataset import 処理で `radar_point_cloud_*` が除外される条件を特定する。
+  - 修正後、別名 dataset へ zip を再アップロードして再検証する。
 - Phase 3: UI/E2E 検証とドキュメント更新
+  - `Radar broken` は本計画では作成しない（`skip` 許容）。
 
 ## Progress
 
@@ -67,13 +73,21 @@ Out-of-scope（非目標）:
 
 - `scene_1_100_radar` の `camera_image_0` URL が 200 で取得できる。
 - `scene_1_100_radar` の `content` に `radar_point_cloud_0` が含まれる。
+- 別名 dataset（再アップロードした検証用）でも、
+  `camera_image_0` / `lidar_point_cloud_0` / `radar_point_cloud_0`
+  の 3 系統が `content` に揃う。
 - `E2E_SCENARIO_LIDAR_RADAR_URL` で画面表示時に Radar UI が表示される。
 - `npm --prefix frontend/pc-tool run test:unit` が PASS する。
-- `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` が期待どおり通る。
+- `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` が
+  `LiDAR only` / `LiDAR + Radar` / `Radar UI` の PASS を満たす。
+- `Radar broken` シナリオは本計画では `skip` を許容する。
 
 ## Verification
 
-- `curl` による `/api/data/listByIds` と presigned URL のヘッダ確認
+- `curl` による `/api/data/listByIds` と presigned URL の確認
+  - `SignatureDoesNotMatch` の有無
+  - `Host` ヘッダ差分での挙動差
+  - コンテナ時刻ずれ（`nginx` / `backend` / `minio`）確認
 - `npm --prefix frontend/pc-tool run test:unit`
 - `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"`
 - 必要に応じて `docker compose up -d --build` / `docker compose ps`
