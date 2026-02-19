@@ -1,5 +1,13 @@
 # Radar Pointcloud Overlay Implementation Plan
 
+## Metadata
+
+- Owner: @masa0810
+- Created: 2026-02-19
+- Last updated: 2026-02-19
+- Status: Active
+- Related: `.agent/strategy/2026-02-19-radar-pointcloud-design.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** 既存の LiDAR + 複数 camera 構成に Radar 1 台分を追加し、注釈ロジックを維持したまま重畳表示を実現する。
