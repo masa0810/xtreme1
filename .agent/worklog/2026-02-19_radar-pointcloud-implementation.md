@@ -67,3 +67,13 @@
 - 11:25 #verify `E2E_SCENARIO_LIDAR_RADAR_URL=datasetId=3,dataId=29` を使って
   `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` を実行し、
   `3 passed / 2 skipped` を確認した。
+- 11:28 #issue `docker compose -f docker-compose.yml -f /tmp/xtreme1-frontend-local.override.yml up -d --build frontend nginx`
+  を試行したが、frontend image build が長時間完了しなかった。
+- 11:30 #decision frontend container 内の `/usr/share/nginx/html/pc-tool` を
+  ローカル build 成果物 `frontend/dist/pc-tool` で上書きし、
+  実行環境に本ブランチの pc-tool 変更を反映する方式を採用した。
+  - 理由: E2E 検証対象を最短で更新するため。
+- 11:31 #verify 反映後に
+  `npm --prefix frontend/pc-tool run test:e2e -- --grep "@scenario|@smoke"` を実行し、
+  `4 passed / 1 skipped` を確認した。
+  - PASS に `@scenario 設定パネルで Radar UI が表示される` を含む。
