@@ -255,6 +255,8 @@ export interface IConfig {
     pointVelocity: [number, number];
     brightness: number; // 强度因子
     openIntensity: boolean;
+    radarVisible: boolean;
+    radarOpacity: number;
     // renderProjectRect: boolean;
     renderRect: boolean;
     renderBox: boolean;
@@ -421,6 +423,10 @@ export interface IDataResource {
     time: number;
     // position
     pointsUrl: string;
+    pointLayers?: {
+        lidar?: { url: string; name?: string };
+        radar?: { url: string; name?: string };
+    };
     pointsData: Record<PointAttr, number[]>;
     intensityRange?: [number, number];
     ground?: number;

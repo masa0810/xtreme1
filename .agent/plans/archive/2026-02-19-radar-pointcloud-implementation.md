@@ -1,5 +1,13 @@
 # Radar Pointcloud Overlay Implementation Plan
 
+## Metadata
+
+- Owner: @masa0810
+- Created: 2026-02-19
+- Last updated: 2026-02-19
+- Status: Done
+- Related: `.agent/strategy/2026-02-19-radar-pointcloud-design.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** 既存の LiDAR + 複数 camera 構成に Radar 1 台分を追加し、注釈ロジックを維持したまま重畳表示を実現する。
@@ -15,6 +23,61 @@
 - 開発環境は Windows 11 + WSL（Ubuntu 24.04）である。
 - ローカル起動は `docker compose` を使用可能である。
 - `frontend/pc-tool` は `npm` で依存解決済みである。
+
+## Context
+
+既存の点群表示および注釈機能は LiDAR 単一入力を前提としている。
+Radar を追加した場合でも、注釈の整合性を維持しつつ、可視化レイヤーとして重畳表示できる構成が必要である。
+
+## Scope
+
+In-scope:
+
+- 点群入力を `pointLayers`（`lidar` / `radar`）へ拡張する。
+- LiDAR 継続動作を優先した Radar 非致命フォールバックを実装する。
+- Radar 表示の最小 UI（表示 ON/OFF、透明度）を追加する。
+- ユニットテストと E2E スモークで主要シナリオを検証する。
+
+Out-of-scope（非目標）:
+
+- Radar を注釈対象にする機能追加。
+- 高度な Radar 可視化（クラスタ分類、時系列追跡、専用カラーマップ最適化）。
+- 本タスク外コンポーネントへの大規模リファクタリング。
+
+## Requirements
+
+- 互換性: LiDAR のみ入力時は既存ワークフローと同等動作を維持する。
+- 可用性: Radar 読み込み失敗時でも LiDAR ロードと注釈操作を継続可能とする。
+- UI: Radar 可視化の表示切り替えと透明度調整を最小操作で提供する。
+- 検証: `test:unit`、`build`、`docker compose`、E2E スモークを通過する。
+
+## Approach
+
+`createViewConfig` と `IDataResource` を `pointLayers` ベースへ段階的に拡張する。
+読み込み経路は LiDAR を主系、Radar を副系として分離し、Radar の失敗を警告へ吸収する。
+描画は `PointCloud` 内でレイヤー独立管理し、raycast と注釈対象は LiDAR 固定を維持する。
+
+## Risks / Unknowns
+
+- `pc-tool` 既存状態管理との結合により、Radar UI 状態反映の実装点が想定より広がる可能性がある。
+- Playwright 実行基盤や fixture 未整備により、E2E 導入工数が増える可能性がある。
+- `pointLayers` への移行漏れがあると、既存 `pointsUrl` 依存箇所で回帰が発生する可能性がある。
+
+## Plan
+
+- Phase 1: `vitest` 導入と `createViewConfig` のテスト基盤整備（Task 1）
+- Phase 2: センサ抽出と `IDataResource` の互換拡張（Task 2-3）
+- Phase 3: ローダー分離と多層描画実装（Task 4-5）
+- Phase 4: Radar 最小 UI 追加（Task 6）
+- Phase 5: ビルド・デプロイ・E2E 最終検証（Task 7-8）
+
+## Progress
+
+- [x] Phase 1: `vitest` 導入と `createViewConfig` テスト基盤整備
+- [x] Phase 2: センサ抽出と `IDataResource` 互換拡張
+- [x] Phase 3: ローダー分離と多層描画実装
+- [x] Phase 4: Radar 最小 UI 追加
+- [x] Phase 5: ビルド・デプロイ・E2E 最終検証
 
 ### Task 1: テスト基盤の最小追加
 
@@ -196,21 +259,23 @@ git commit -m "🧱 Radarロード失敗を非致命化しLiDAR継続を保証"
 **Files:**
 - Modify: `frontend/pc-tool/src/packages/pc-render/PointCloud.ts`
 - Modify: `frontend/pc-tool/src/packages/pc-render/material/PointsMaterial.ts`（必要時のみ）
+- Create: `frontend/pc-tool/src/packages/pc-render/PointCloud.spec.ts`（未存在の場合）
 
 **Step 1: Write the failing test**
 
-`common.spec.ts` に仕様テストを追加する（注釈対象固定）。
+`PointCloud.spec.ts` に仕様テストを追加する（注釈対象固定）。
 
 ```ts
 it('設計上、注釈対象はLiDARに固定される', () => {
-  expect('lidar').toBe('lidar');
+  const pc = new PointCloud();
+  expect(pc.getActiveAnnotationLayer()).toBe('lidar');
 });
 ```
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-editor/utils/common.spec.ts`
-Expected: FAIL（暫定。ここでは RED を作るため実装依存の assertion を設定）
+Run: `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-render/PointCloud.spec.ts`
+Expected: FAIL（`getActiveAnnotationLayer` 未実装などで RED になる）
 
 **Step 3: Write minimal implementation**
 
@@ -220,13 +285,13 @@ Expected: FAIL（暫定。ここでは RED を作るため実装依存の assert
 
 **Step 4: Run test to verify it passes**
 
-Run: `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-editor/utils/common.spec.ts`
+Run: `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-render/PointCloud.spec.ts`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add frontend/pc-tool/src/packages/pc-render/PointCloud.ts frontend/pc-tool/src/packages/pc-render/material/PointsMaterial.ts frontend/pc-tool/src/packages/pc-editor/utils/common.spec.ts
+git add frontend/pc-tool/src/packages/pc-render/PointCloud.ts frontend/pc-tool/src/packages/pc-render/material/PointsMaterial.ts frontend/pc-tool/src/packages/pc-render/PointCloud.spec.ts
 git commit -m "🚀 PointCloudをLiDAR+Radar重畳描画に拡張"
 ```
 
@@ -248,7 +313,7 @@ UI の挙動要件を Playwright 用シナリオとして先に定義する。
 
 **Step 2: Run test to verify it fails**
 
-Run: `npx playwright test --grep "radar toggle"`
+Run: `npm --prefix frontend/pc-tool exec playwright test --grep "radar toggle"`
 Expected: FAIL（テスト未実装または UI 要素未存在）
 
 **Step 3: Write minimal implementation**
@@ -259,7 +324,7 @@ Expected: FAIL（テスト未実装または UI 要素未存在）
 
 **Step 4: Run test to verify it passes**
 
-Run: `npx playwright test --grep "radar toggle"`
+Run: `npm --prefix frontend/pc-tool exec playwright test --grep "radar toggle"`
 Expected: PASS
 
 **Step 5: Commit**
@@ -273,6 +338,7 @@ git commit -m "🎛️ Radar表示最小UIを追加"
 
 **Files:**
 - Modify: `frontend/pc-tool/README.md`（必要時）
+- Modify: 検証で判明した最小限の設定/実装ファイル（必要時）
 
 **Step 1: Write the failing test**
 
@@ -298,7 +364,7 @@ Expected: PASS（ビルド完了およびローカルデプロイ成功）
 **Step 5: Commit**
 
 ```bash
-git add frontend/pc-tool/README.md
+git add frontend/pc-tool/README.md <検証で修正した最小限のファイル群>
 git commit -m "📝 Radar重畳対応の検証手順を更新"
 ```
 
@@ -319,7 +385,7 @@ git commit -m "📝 Radar重畳対応の検証手順を更新"
 
 **Step 2: Run test to verify it fails**
 
-Run: `npx playwright test frontend/pc-tool/e2e/radar-overlay.spec.ts`
+Run: `npm --prefix frontend/pc-tool exec playwright test e2e/radar-overlay.spec.ts`
 Expected: FAIL（初回は selectors や mock 未整備）
 
 **Step 3: Write minimal implementation**
@@ -329,7 +395,7 @@ Expected: FAIL（初回は selectors や mock 未整備）
 
 **Step 4: Run test to verify it passes**
 
-Run: `npx playwright test frontend/pc-tool/e2e/radar-overlay.spec.ts`
+Run: `npm --prefix frontend/pc-tool exec playwright test e2e/radar-overlay.spec.ts`
 Expected: PASS
 
 **Step 5: Commit**
@@ -339,14 +405,27 @@ git add frontend/pc-tool/e2e/radar-overlay.spec.ts
 git commit -m "✅ Radar重畳のE2Eスモークを追加"
 ```
 
-## 検証チェックリスト
+## Acceptance Criteria
+
+- LiDAR のみ入力時に既存の表示・注釈フローが回帰しない。
+- LiDAR + Radar 入力時に Radar が重畳表示される。
+- Radar 入力欠損または読込失敗時に LiDAR 操作が継続可能である。
+- Radar UI（表示 ON/OFF、透明度）が描画へ反映される。
+
+## Verification
 
 - `npm --prefix frontend/pc-tool run test:unit` が PASS する。
 - `npm --prefix frontend/pc-tool run build` が PASS する。
 - `docker compose` でローカル起動できる。
-- `Playwright CLI` スモークで 3 パターンを確認できる。
+- `npm --prefix frontend/pc-tool exec playwright test --grep "radar toggle"` が PASS する。
+- `npm --prefix frontend/pc-tool exec playwright test e2e/radar-overlay.spec.ts` が PASS する。
 
 ## ロールバック
 
 - `pointLayers` 導入で不具合が出た場合、`pointLayers.radar` の参照を feature flag 相当で無効化し、LiDAR 単独描画へ戻す。
 - UI 側 Radar 設定項目を無効化し、既存挙動へ復帰する。
+
+## Decisions / Changes
+
+- 2026-02-19: 実行計画の必須項目（Scope / Risks / Progress / Acceptance Criteria / Verification）を補完した。理由: `AGENTS.md` と `.agent/PLANS.md` の運用規約準拠のため。
+- 2026-02-19: Playwright 実行コマンドを `frontend/pc-tool` 基準へ統一した。理由: 実行位置依存での誤検知を防ぐため。

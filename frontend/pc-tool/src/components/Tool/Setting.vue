@@ -108,6 +108,33 @@
                     :step="0.1"
                     @change="() => update('brightness')"
                 />
+                <div class="title3"
+                    >{{ $$('setting_radar_visible') }}
+                    <a-switch
+                        size="small"
+                        style="margin-top: 5px; float: right"
+                        v-model:checked="config.radarVisible"
+                    />
+                </div>
+                <div class="title3"
+                    >{{ $$('setting_radar_opacity') }}
+                    <a-button
+                        type="dashed"
+                        class="reset"
+                        size="small"
+                        @click="onResetRadarOpacity"
+                        >{{ $$('setting_pointreset') }}</a-button
+                    >
+                </div>
+                <a-slider
+                    style="width: 200px; margin: 0px; margin-top: 5px"
+                    v-model:value="config.radarOpacity"
+                    :tip-formatter="formatter"
+                    :min="0"
+                    :max="1"
+                    :step="0.05"
+                    @change="() => update('radarOpacity')"
+                />
             </div>
             <div class="wrap">
                 <div class="title3"
@@ -335,6 +362,12 @@
             case 'brightness':
                 options.brightness = config.brightness;
                 break;
+            case 'radarOpacity':
+                pc.setRadarOpacity(config.radarOpacity);
+                return;
+            case 'radarVisible':
+                pc.setRadarVisible(config.radarVisible);
+                return;
             case 'intensityRange':
                 options.intensityRange = new THREE.Vector2(
                     config.pointIntensity[0],
@@ -360,6 +393,10 @@
         config.brightness = 1;
         update('brightness');
     }
+    function onResetRadarOpacity() {
+        config.radarOpacity = 0.5;
+        update('radarOpacity');
+    }
     watch(
         () => config.pointColorMode,
         () => {
@@ -378,6 +415,13 @@
         () => config.openIntensity,
         () => {
             update('intensity');
+        },
+    );
+
+    watch(
+        () => config.radarVisible,
+        () => {
+            update('radarVisible');
         },
     );
 

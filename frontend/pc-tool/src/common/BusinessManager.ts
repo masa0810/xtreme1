@@ -33,8 +33,10 @@ export default class BusinessManager extends BaseBusinessManager {
         }
 
         let info = utils.createViewConfig(fileConfig, cameraInfo);
+        const pointsUrl = info.pointLayers?.lidar?.url || info.pointsUrl;
         let config: IDataResource = {
-            pointsUrl: info.pointsUrl,
+            pointsUrl,
+            pointLayers: info.pointLayers,
             pointsData: {},
             viewConfig: info.config,
             time: 0,

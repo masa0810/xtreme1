@@ -20,6 +20,8 @@ const en = {
     setting_colorvelocity: 'Speed',
     setting_brightness: 'Brightness',
     setting_colorsingle: 'Single',
+    setting_radar_visible: 'Radar Visible',
+    setting_radar_opacity: 'Radar Opacity',
 
     title_rect: 'Create Rect',
     title_create2DBox: 'Create Box(2D)',

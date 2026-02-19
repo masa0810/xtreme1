@@ -140,6 +140,8 @@ function getDefaultConfig(): IConfig {
         pointIntensity: [0, 255],
         openIntensity: false,
         brightness: 1,
+        radarVisible: true,
+        radarOpacity: 0.5,
         pointGround: -1.5,
         pointColors: ['#141ff0', '#Fab942'],
         pointHeight: [-Infinity, Infinity],

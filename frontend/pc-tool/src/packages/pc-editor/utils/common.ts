@@ -34,10 +34,18 @@ export function createViewConfig(fileConfig: IFileConfig[], cameraInfo: any[]) {
     let viewConfig = [] as IImgViewConfig[];
     let pointsUrl = '';
     const regLidar = new RegExp(/point(_?)cloud/i);
+    const regRadar = new RegExp(/radar(_?)point(_?)cloud/i);
     const regImage = new RegExp(/image/i);
+    const pointLayers = {
+        lidar: undefined as undefined | { url: string; name: string },
+        radar: undefined as undefined | { url: string; name: string },
+    };
     fileConfig.forEach((e) => {
-        if (regLidar.test(e.dirName)) {
+        if (regRadar.test(e.dirName)) {
+            pointLayers.radar = { url: e.url, name: e.name };
+        } else if (regLidar.test(e.dirName)) {
             pointsUrl = e.url;
+            pointLayers.lidar = { url: e.url, name: e.name };
         } else if (regImage.test(e.dirName)) {
             const index = +(e.dirName.match(/[0-9]{1,5}$/) as any)[0];
             viewConfig[index] = {
@@ -65,8 +73,9 @@ export function createViewConfig(fileConfig: IFileConfig[], cameraInfo: any[]) {
 
     // filter
     viewConfig = viewConfig.filter((e) => e.cameraExternal.length === 16 && e.cameraInternal);
+    pointsUrl = pointLayers.lidar?.url || pointsUrl;
 
-    return { pointsUrl, config: viewConfig };
+    return { pointsUrl, config: viewConfig, pointLayers };
 }
 
 export function rand(start: number, end: number) {
