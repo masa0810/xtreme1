@@ -66,8 +66,8 @@ Out-of-scope（非目標）:
 
 - [x] Phase 0: 事実固定（API/URL 403、zip 内容、取り込み結果）
 - [x] Phase 1: MinIO 配信経路の修正と再検証
-- [ ] Phase 2: Radar 取り込み経路の修正と再取り込み
-- [ ] Phase 3: UI/E2E 検証とドキュメント更新
+- [x] Phase 2: Radar 取り込み経路の修正と再取り込み
+- [x] Phase 3: UI/E2E 検証とドキュメント更新
 
 ## Acceptance Criteria
 
@@ -104,3 +104,6 @@ Out-of-scope（非目標）:
   画像非表示（403）と Radar 欠落の後続対応として起票した。
 - 2026-02-19: backend をローカル検証できるよう `basicai/xtreme1-backend:v0.9.1-islab`
   の compose build を有効化し、Dockerfile の base image/依存解決を更新した。
+- 2026-02-19: `Radar Fusion Test 2`（datasetId=3, dataId=29）で
+  `camera_image_0` / `lidar_point_cloud_0` / `radar_point_cloud_0`
+  の URL 200 と E2E（`@scenario|@smoke`）4 PASS / 1 SKIP を確認した。

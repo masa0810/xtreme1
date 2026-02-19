@@ -27,3 +27,14 @@
   `radar_point_cloud_*` 受理の RED→GREEN を確認した。
 - 14:22 #fix backend ローカル build を有効化するため
   `backend/Dockerfile` の base image と依存解決を更新した。
+- 14:35 #verify `Radar Fusion Test 2`（datasetId=3）で
+  `scene_1_100_radar_2`（dataId=29）を確認した。
+- 14:36 #verify `api/data/listByIds?dataIds=29` の `content` に
+  `radar_point_cloud_0` が含まれることを確認した。
+- 14:37 #verify `camera_config` / `camera_image_0` /
+  `lidar_point_cloud_0` / `radar_point_cloud_0` の presigned URL が
+  すべて HTTP 200 を返すことを確認した。
+- 14:40 #verify `pc-tool` の unit test（5件）を PASS 確認した。
+- 14:42 #verify Playwright `@scenario|@smoke` を
+  `E2E_SCENARIO_LIDAR_ONLY_URL` / `E2E_SCENARIO_LIDAR_RADAR_URL` 付きで実行し、
+  4 PASS / 1 SKIP（`Radar broken`）を確認した。
