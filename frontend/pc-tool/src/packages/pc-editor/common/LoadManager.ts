@@ -273,13 +273,17 @@ export default class LoadManager {
         this.editor.setPointCloudData(data.pointsData, data.ground || 0, data.intensityRange);
 
         const radarUrl = data.pointLayers?.radar?.url;
-        if (!radarUrl) return;
+        if (!radarUrl) {
+            this.editor.clearRadarPointCloudData();
+            return;
+        }
 
         try {
             const radarData = await this.editor.dataResource.loadPoints(radarUrl);
             this.editor.setRadarPointCloudData(radarData);
         } catch (error) {
             console.warn('[LoadManager] Radar pointcloud load failed:', radarUrl, error);
+            this.editor.clearRadarPointCloudData();
         }
     }
 }

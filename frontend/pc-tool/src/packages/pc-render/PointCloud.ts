@@ -9,6 +9,7 @@ import { ITransform } from './type';
 import { isArray } from 'lodash';
 import TWEEN from '@tweenjs/tween.js';
 import PointsMaterial from './material/PointsMaterial';
+import { ColorModeEnum } from './material/PointsMaterial';
 import type { IUniformOption } from './material/PointsMaterial';
 import { Points } from './points';
 import * as _ from 'lodash';
@@ -36,8 +37,12 @@ export default class PointCloud extends THREE.EventDispatcher {
     private renderTimer: number = 0;
     private lidarPoints?: Points;
     private radarPoints?: Points;
+    private pointLayerMode: 'lidar' | 'radar' | 'both' = 'both';
     private radarVisible: boolean = true;
     private radarOpacity: number = 0.5;
+    private radarRawData: any = null;
+    private radarColorAttr: 'intensity' | 'snr' = 'intensity';
+    private radarAutoNormalize: boolean = true;
 
     constructor() {
         super();
@@ -286,20 +291,50 @@ export default class PointCloud extends THREE.EventDispatcher {
         // this.dispatchEvent({ type: Event.LOAD_POINT_AFTER });
     }
     setRadarPointCloudData(data: any) {
+        this.radarRawData = data;
         const points = this.getOrCreateRadarPoints();
-        points.updateData(data);
+        points.updateData(this.normalizeRadarRenderData(data));
+        this.render();
+    }
+    clearRadarPointCloudData() {
+        this.radarRawData = null;
+        if (this.radarPoints) {
+            this.radarPoints.updateData({ position: [], intensity: [], color: [] });
+        }
         this.render();
     }
     setRadarVisible(visible: boolean) {
         this.radarVisible = visible;
-        if (this.radarPoints) {
-            this.radarPoints.visible = visible;
-        }
+        this.applyPointLayerVisibility();
         this.render();
     }
     setRadarOpacity(opacity: number) {
         this.radarOpacity = _.clamp(opacity, 0, 1);
         this.radarMaterial.setUniforms({ globalOpacity: this.radarOpacity });
+        this.render();
+    }
+    setRadarColorAttr(attr: 'intensity' | 'snr') {
+        this.radarColorAttr = attr;
+        this.reloadRadarPoints();
+    }
+    setRadarAutoNormalize(flag: boolean) {
+        this.radarAutoNormalize = flag;
+        this.reloadRadarPoints();
+    }
+    setRadarUniforms(option: IUniformOption) {
+        this.radarMaterial.setUniforms(option);
+        this.render();
+    }
+    setRadarOption(option: Parameters<PointsMaterial['setOption']>[0]) {
+        this.radarMaterial.setOption(option);
+        this.render();
+    }
+    setPointUniforms(option: IUniformOption) {
+        this.material.setUniforms(option);
+        this.render();
+    }
+    setPointOption(option: Parameters<PointsMaterial['setOption']>[0]) {
+        this.material.setOption(option);
         this.render();
     }
     getActiveAnnotationLayer() {
@@ -318,6 +353,7 @@ export default class PointCloud extends THREE.EventDispatcher {
                 this.render();
             });
             this.groupPoints.add(this.lidarPoints);
+            this.applyPointLayerVisibility();
         }
         return this.lidarPoints;
     }
@@ -325,10 +361,16 @@ export default class PointCloud extends THREE.EventDispatcher {
     getOrCreateRadarPoints() {
         if (!this.radarPoints) {
             this.radarPoints = new Points(this.radarMaterial);
-            this.radarPoints.visible = this.radarVisible;
             this.groupPoints.add(this.radarPoints);
+            this.applyPointLayerVisibility();
         }
         return this.radarPoints;
+    }
+
+    setPointLayerMode(mode: 'lidar' | 'radar' | 'both') {
+        this.pointLayerMode = mode;
+        this.applyPointLayerVisibility();
+        this.render();
     }
 
     setSharedPointUniforms(option: IUniformOption) {
@@ -339,6 +381,15 @@ export default class PointCloud extends THREE.EventDispatcher {
     setSharedPointOption(option: Parameters<PointsMaterial['setOption']>[0]) {
         this.material.setOption(option);
         this.radarMaterial.setOption(option);
+    }
+
+    private applyPointLayerVisibility() {
+        if (this.lidarPoints) {
+            this.lidarPoints.visible = this.pointLayerMode !== 'radar';
+        }
+        if (this.radarPoints) {
+            this.radarPoints.visible = this.radarVisible && this.pointLayerMode !== 'lidar';
+        }
     }
 
     // render
@@ -355,4 +406,48 @@ export default class PointCloud extends THREE.EventDispatcher {
         if (this.renderTimer) return;
         this.renderTimer = requestAnimationFrame(this._render.bind(this));
     }
+
+    private reloadRadarPoints() {
+        if (!this.radarRawData || !this.radarPoints) return;
+        this.radarPoints.updateData(this.normalizeRadarRenderData(this.radarRawData));
+        this.render();
+    }
+
+    private normalizeRadarRenderData(data: any) {
+        const selectedSource = this.radarColorAttr === 'snr' ? data?.snr : data?.intensity;
+        const fallbackSource = this.radarColorAttr === 'snr' ? data?.intensity : data?.snr;
+        const source = Array.isArray(selectedSource) && selectedSource.length > 0
+            ? selectedSource
+            : fallbackSource;
+        const hasIntensity = Array.isArray(source) && source.length > 0;
+        this.radarMaterial.setOption({
+            hasIntensity,
+            hasRGB: Array.isArray(data?.color) && data.color.length > 0,
+            hasVelocity: false,
+        });
+        this.radarMaterial.setUniforms({
+            colorMode: this.radarMaterial.getUniforms('colorMode') ?? ColorModeEnum.HEIGHT,
+            openIntensity: hasIntensity ? 1.0 : -1.0,
+        });
+        if (!hasIntensity) {
+            return { ...data, intensity: [] };
+        }
+        const intensity = this.radarAutoNormalize
+            ? normalizeToByte(source as number[])
+            : [...(source as number[])];
+        return { ...data, intensity };
+    }
+}
+
+function normalizeToByte(values: number[]) {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const value of values) {
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+    }
+    if (!isFinite(min) || !isFinite(max) || max === min) {
+        return values.map(() => 0);
+    }
+    return values.map((value) => ((value - min) / (max - min)) * 255);
 }

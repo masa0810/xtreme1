@@ -37,6 +37,7 @@ export default class BusinessManager extends BaseBusinessManager {
         let config: IDataResource = {
             pointsUrl,
             pointLayers: info.pointLayers,
+            radarConfigs: info.radarConfigs,
             pointsData: {},
             viewConfig: info.config,
             time: 0,

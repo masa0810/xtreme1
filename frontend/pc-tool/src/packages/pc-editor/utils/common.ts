@@ -60,6 +60,7 @@ export function createViewConfig(fileConfig: IFileConfig[], cameraInfo: any[]) {
     });
     viewConfig = viewConfig.filter((e) => !!e);
     const cameraInfoList = normalizeCameraInfoList(cameraInfo);
+    const radarConfigs = normalizeRadarInfoList(cameraInfo);
     viewConfig.forEach((config, index) => {
         let info = cameraInfoList[index];
 
@@ -76,7 +77,7 @@ export function createViewConfig(fileConfig: IFileConfig[], cameraInfo: any[]) {
     viewConfig = viewConfig.filter((e) => e.cameraExternal.length === 16 && e.cameraInternal);
     pointsUrl = pointLayers.lidar?.url || pointsUrl;
 
-    return { pointsUrl, config: viewConfig, pointLayers };
+    return { pointsUrl, config: viewConfig, pointLayers, radarConfigs };
 }
 
 function normalizeCameraInfoList(cameraInfo: any): any[] {
@@ -85,6 +86,19 @@ function normalizeCameraInfoList(cameraInfo: any): any[] {
     }
     if (Array.isArray(cameraInfo?.cameras)) {
         return cameraInfo.cameras;
+    }
+    if (Array.isArray(cameraInfo?.camera)) {
+        return cameraInfo.camera;
+    }
+    return [];
+}
+
+function normalizeRadarInfoList(cameraInfo: any): any[] {
+    if (Array.isArray(cameraInfo?.radars)) {
+        return cameraInfo.radars;
+    }
+    if (Array.isArray(cameraInfo?.radar)) {
+        return cameraInfo.radar;
     }
     return [];
 }

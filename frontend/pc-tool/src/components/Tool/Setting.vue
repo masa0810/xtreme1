@@ -109,6 +109,25 @@
                     @change="() => update('brightness')"
                 />
                 <div class="title3"
+                    >{{ $$('setting_point_layer_mode') }}
+                    <br />
+                    <a-radio-group
+                        v-model:value="config.pointLayerMode"
+                        size="small"
+                        style="font-size: 12px; margin-top: 5px"
+                    >
+                        <a-radio-button style="width: 62px; text-align: center" value="lidar">
+                            LiDAR
+                        </a-radio-button>
+                        <a-radio-button style="width: 62px; text-align: center" value="radar">
+                            Radar
+                        </a-radio-button>
+                        <a-radio-button style="width: 62px; text-align: center" value="both">
+                            {{ $$('setting_point_layer_both') }}
+                        </a-radio-button>
+                    </a-radio-group>
+                </div>
+                <div class="title3"
                     >{{ $$('setting_radar_visible') }}
                     <a-switch
                         size="small"
@@ -211,6 +230,63 @@
                         :min="0"
                         :max="255"
                         :step="0.1"
+                    />
+                </div>
+            </div>
+            <div class="wrap">
+                <div class="title3"
+                    >{{ $$('setting_radar_color_mode') }}
+                    <br />
+                    <a-radio-group
+                        v-model:value="config.radarColorMode"
+                        size="small"
+                        style="font-size: 12px; margin-top: 5px"
+                    >
+                        <a-radio-button
+                            style="width: 80px; text-align: center"
+                            :value="ColorModeEnum.PURE"
+                        >
+                            {{ $$('setting_colorsingle') }}
+                        </a-radio-button>
+                        <a-radio-button
+                            style="width: 80px; text-align: center"
+                            :value="ColorModeEnum.HEIGHT"
+                        >
+                            {{ $$('setting_colorheight') }}
+                        </a-radio-button>
+                    </a-radio-group>
+                </div>
+                <div class="title3" style="padding-top: 10px"
+                    >{{ $$('setting_radar_color_attr') }}
+                    <br />
+                    <a-radio-group
+                        v-model:value="config.radarColorAttr"
+                        size="small"
+                        style="font-size: 12px; margin-top: 5px"
+                    >
+                        <a-radio-button
+                            value="intensity"
+                            :disabled="!config.radarHasIntensity"
+                            style="width: 95px; text-align: center"
+                        >
+                            {{ $$('setting_radar_attr_intensity') }}
+                        </a-radio-button>
+                        <a-radio-button
+                            value="snr"
+                            :disabled="!config.radarHasSnr"
+                            style="width: 95px; text-align: center"
+                        >
+                            {{ $$('setting_radar_attr_snr') }}
+                        </a-radio-button>
+                    </a-radio-group>
+                </div>
+                <div class="title3" style="padding-top: 10px"
+                    >{{ $$('setting_radar_auto_normalize') }}
+                    <a-switch
+                        size="small"
+                        style="margin-top: 5px; float: right"
+                        v-model:checked="config.radarAutoNormalize"
+                        :disabled="!config.radarHasIntensity && !config.radarHasSnr"
                     />
                 </div>
             </div>
@@ -360,11 +436,23 @@
             case 'brightness':
                 options.brightness = config.brightness;
                 break;
+            case 'pointLayerMode':
+                pc.setPointLayerMode(config.pointLayerMode);
+                return;
             case 'radarOpacity':
                 pc.setRadarOpacity(config.radarOpacity);
                 return;
             case 'radarVisible':
                 pc.setRadarVisible(config.radarVisible);
+                return;
+            case 'radarColorMode':
+                pc.setRadarUniforms({ colorMode: config.radarColorMode });
+                return;
+            case 'radarColorAttr':
+                pc.setRadarColorAttr(config.radarColorAttr);
+                return;
+            case 'radarAutoNormalize':
+                pc.setRadarAutoNormalize(config.radarAutoNormalize);
                 return;
             case 'intensityRange':
                 options.intensityRange = new THREE.Vector2(
@@ -372,6 +460,11 @@
                     config.pointIntensity[1],
                 );
                 break;
+        }
+
+        if (type === 'colorType' || type === 'intensity' || type === 'intensityRange') {
+            pc.setPointUniforms(options);
+            return;
         }
 
         pc.setSharedPointUniforms(options);
@@ -420,6 +513,51 @@
         () => config.radarVisible,
         () => {
             update('radarVisible');
+        },
+    );
+
+    watch(
+        () => config.pointLayerMode,
+        () => {
+            update('pointLayerMode');
+        },
+    );
+
+    watch(
+        () => config.radarColorMode,
+        () => {
+            update('radarColorMode');
+        },
+    );
+
+    watch(
+        () => config.radarColorAttr,
+        () => {
+            update('radarColorAttr');
+        },
+    );
+
+    watch(
+        () => config.radarAutoNormalize,
+        () => {
+            update('radarAutoNormalize');
+        },
+    );
+
+    watch(
+        () => [config.radarHasIntensity, config.radarHasSnr],
+        ([hasIntensity, hasSnr]) => {
+            if (config.radarColorAttr === 'intensity' && !hasIntensity && hasSnr) {
+                config.radarColorAttr = 'snr';
+                return;
+            }
+            if (config.radarColorAttr === 'snr' && !hasSnr && hasIntensity) {
+                config.radarColorAttr = 'intensity';
+                return;
+            }
+            if (!hasIntensity && !hasSnr) {
+                config.radarColorAttr = 'intensity';
+            }
         },
     );
 

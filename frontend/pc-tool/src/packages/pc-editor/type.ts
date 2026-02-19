@@ -255,8 +255,14 @@ export interface IConfig {
     pointVelocity: [number, number];
     brightness: number; // 强度因子
     openIntensity: boolean;
+    pointLayerMode: 'lidar' | 'radar' | 'both';
     radarVisible: boolean;
     radarOpacity: number;
+    radarColorMode: ColorModeEnum;
+    radarColorAttr: 'intensity' | 'snr';
+    radarAutoNormalize: boolean;
+    radarHasIntensity: boolean;
+    radarHasSnr: boolean;
     // renderProjectRect: boolean;
     renderRect: boolean;
     renderBox: boolean;
@@ -427,6 +433,7 @@ export interface IDataResource {
         lidar?: { url: string; name?: string };
         radar?: { url: string; name?: string };
     };
+    radarConfigs?: any[];
     pointsData: Record<PointAttr, number[]>;
     intensityRange?: [number, number];
     ground?: number;

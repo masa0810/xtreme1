@@ -64,4 +64,47 @@ describe('createViewConfig', () => {
         expect(result.config).toHaveLength(1);
         expect(result.config[0].imgUrl).toBe('/cam0.png');
     });
+
+    it('camera_config が camera 配列ラッパー形式でも画像設定を生成する', () => {
+        const fileConfig = [
+            { dirName: 'pointcloud', url: '/lidar.pcd', name: 'lidar' },
+            { dirName: 'camera_image_0', url: '/cam0.png', name: '000100.png' },
+        ] as any;
+        const cameraInfo = {
+            camera: [
+                {
+                    cameraInternal: { fx: 1, fy: 1, cx: 2, cy: 3 },
+                    cameraExternal: [
+                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1,
+                    ],
+                    width: 1225,
+                    height: 820,
+                    rowMajor: true,
+                },
+            ],
+        } as any;
+
+        const result = createViewConfig(fileConfig, cameraInfo);
+        expect(result.config).toHaveLength(1);
+        expect(result.config[0].imgUrl).toBe('/cam0.png');
+    });
+
+    it('camera_config の radars/radar を双方受理する', () => {
+        const fileConfig = [{ dirName: 'pointcloud', url: '/lidar.pcd', name: 'lidar' }] as any;
+
+        const withRadars = createViewConfig(fileConfig, {
+            cameras: [],
+            radars: [{ radar_external: [1, 0, 0, 0], rowMajor: true }],
+        } as any);
+        expect(withRadars.radarConfigs).toHaveLength(1);
+
+        const withRadar = createViewConfig(fileConfig, {
+            camera: [],
+            radar: [{ radar_external: [1, 0, 0, 0], rowMajor: true }],
+        } as any);
+        expect(withRadar.radarConfigs).toHaveLength(1);
+    });
 });

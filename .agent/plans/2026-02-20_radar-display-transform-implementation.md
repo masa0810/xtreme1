@@ -67,11 +67,11 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 
 ## Progress
 
-- [ ] Phase 1: 仕様固定とテスト先行
-- [ ] Phase 2: `camera_config` 正規化とデータ契約反映
+- [x] Phase 1: 仕様固定とテスト先行
+- [x] Phase 2: `camera_config` 正規化とデータ契約反映
 - [ ] Phase 2.5: backend 座標変換の確認観点固定
-- [ ] Phase 3: 描画・状態管理の Radar 独立化
-- [ ] Phase 4: Display パネル拡張
+- [x] Phase 3: 描画・状態管理の Radar 独立化
+- [x] Phase 4: Display パネル拡張
 - [ ] Phase 5: 検証・ドキュメント更新
 
 ## Acceptance Criteria
@@ -108,3 +108,4 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 - 2026-02-20: 座標変換責務は backend に固定し、frontend は変換済み Radar の描画と UI 拡張に集中する方針とした。
 - 2026-02-20: `camera_config` は `cameras/camera` と `radars/radar` の両形式を受理対象とする方針に更新した。
 - 2026-02-20: backend 変換確認は新規配布テストデータを待たず、現行データの `radars/radar` 行列で検証する方針に更新した。
+- 2026-02-20: Radar 表示を LiDAR 設定から分離し、Display でレイヤー/属性/正規化を独立制御する構成に更新した。

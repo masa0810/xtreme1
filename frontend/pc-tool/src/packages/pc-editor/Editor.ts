@@ -359,8 +359,28 @@ export default class Editor extends THREE.EventDispatcher {
     }
 
     setRadarPointCloudData(data: any) {
+        const hasIntensity = Array.isArray(data?.intensity) && data.intensity.length > 0;
+        const hasSnr = Array.isArray(data?.snr) && data.snr.length > 0;
+        this.state.config.radarHasIntensity = hasIntensity;
+        this.state.config.radarHasSnr = hasSnr;
+        if (!hasIntensity && hasSnr) {
+            this.state.config.radarColorAttr = 'snr';
+        } else if (!hasIntensity && !hasSnr) {
+            this.state.config.radarColorAttr = 'intensity';
+        }
+
         this.radarPointsData = data;
+        this.pc.setRadarColorAttr(this.state.config.radarColorAttr);
+        this.pc.setRadarAutoNormalize(this.state.config.radarAutoNormalize);
         this.pc.setRadarPointCloudData(data);
+    }
+
+    clearRadarPointCloudData() {
+        this.radarPointsData = null;
+        this.state.config.radarHasIntensity = false;
+        this.state.config.radarHasSnr = false;
+        this.state.config.radarColorAttr = 'intensity';
+        this.pc.clearRadarPointCloudData();
     }
 
     frameChange(frames?: IFrame | IFrame[]) {
