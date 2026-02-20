@@ -41,3 +41,10 @@
 - 13:58 #impl `ConfigManager` で `intensity` 属性存在時に `hasIntensity` を維持するよう修正し、`Auto Normalize` 切替後も LiDAR 強度 UI が消えないようにした。
 - 13:58 #test `npm --prefix frontend/pc-tool run test:unit -- src/packages/pc-editor/common/ConfigManager.spec.ts src/packages/pc-render/PointCloud.spec.ts` を実行し、11 tests passed を確認した。
 - 13:59 #test Playwright で `datasetId=3&dataId=29` を用いた ON/OFF 切替の前後スクリーンショットを取得した（`2026-02-20_lidar-autonorm_before_toggle.png` / `2026-02-20_lidar-autonorm_after_toggle_on.png` / `2026-02-20_lidar-autonorm_after_toggle_off.png`）。
+- 15:00 #impl Display 設定から LiDAR/Radar の `Auto Normalize` コントロールを削除し、関連 watcher・更新分岐・文言キーを整理した。
+- 15:00 #impl `v0.9.1` 確認後に compose タグを `v0.9.1-islab` へ戻した。
+- 15:01 #test `npm --prefix frontend/pc-tool run test:unit -- src/packages/pc-editor/common/ConfigManager.spec.ts src/packages/pc-render/PointCloud.spec.ts` と `npm --prefix frontend/pc-tool run build` の成功を確認した。
+- 15:13 #impl Radar `Intensity` ON 時にレンジ入力とスライダーを表示する UI を追加し、LiDAR と同等の調整導線を実装した。
+- 15:13 #impl Radar 読込時に intensity/snr の実データ範囲を算出して `radarIntensityRange` と `radarIntensity` を同期し、uniform `intensityRange` へ反映する処理を追加した。
+- 15:14 #test `npm --prefix frontend/pc-tool run test:unit -- src/packages/pc-editor/common/ConfigManager.spec.ts src/packages/pc-render/PointCloud.spec.ts` と `npm --prefix frontend/pc-tool run build` の成功を確認した。
+- 15:14 #test Playwright で Radar Intensity ON 時にレンジ入力とスライダーが表示されることを確認し、`2026-02-20_radar-intensity-controls-on.png` を取得した。

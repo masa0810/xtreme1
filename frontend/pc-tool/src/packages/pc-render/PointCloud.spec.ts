@@ -94,6 +94,11 @@ describe('PointCloud', () => {
             intensity: [100, 200],
         });
 
+        let raw = pc.getOrCreateRadarPoints().geometry.getAttribute('intensity') as THREE.BufferAttribute;
+        expect(raw.array[0]).toBe(100);
+        expect(raw.array[1]).toBe(200);
+
+        pc.setRadarAutoNormalize(true);
         const normalized = pc
             .getOrCreateRadarPoints()
             .geometry.getAttribute('intensity') as THREE.BufferAttribute;
@@ -101,7 +106,7 @@ describe('PointCloud', () => {
         expect(normalized.array[1]).toBe(255);
 
         pc.setRadarAutoNormalize(false);
-        const raw = pc.getOrCreateRadarPoints().geometry.getAttribute('intensity') as THREE.BufferAttribute;
+        raw = pc.getOrCreateRadarPoints().geometry.getAttribute('intensity') as THREE.BufferAttribute;
         expect(raw.array[0]).toBe(100);
         expect(raw.array[1]).toBe(200);
         vi.unstubAllGlobals();
@@ -114,10 +119,14 @@ describe('PointCloud', () => {
             position: [0, 0, 0, 1, 1, 1],
             snr: [3, 9],
         });
-        const intensity = pc
+        let intensity = pc
             .getOrCreateRadarPoints()
             .geometry.getAttribute('intensity') as THREE.BufferAttribute;
         expect(pc.radarMaterial.option.hasIntensity).toBe(true);
+        expect(intensity.array[0]).toBe(3);
+        expect(intensity.array[1]).toBe(9);
+        pc.setRadarAutoNormalize(true);
+        intensity = pc.getOrCreateRadarPoints().geometry.getAttribute('intensity') as THREE.BufferAttribute;
         expect(intensity.array[0]).toBe(0);
         expect(intensity.array[1]).toBe(255);
         vi.unstubAllGlobals();

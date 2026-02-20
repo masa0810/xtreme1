@@ -24,7 +24,6 @@ const zh: ILocale = {
     setting_colorsingle: '单一颜色',
     setting_lidar_section: '激光雷达',
     setting_radar_section: '毫米波雷达',
-    setting_auto_normalize: '自动归一化',
     setting_point_layer_mode: '图层',
     setting_point_layer_both: '两者',
     setting_lidar_opacity: '透明度',
@@ -33,7 +32,6 @@ const zh: ILocale = {
     setting_radar_color_attr: '雷达属性',
     setting_radar_attr_intensity: '强度',
     setting_radar_attr_snr: '信噪比',
-    setting_radar_auto_normalize: '自动归一化',
 
     title_rect: '创建矩形',
     title_create2DBox: '创建立方体(2D)',

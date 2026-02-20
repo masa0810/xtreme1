@@ -264,6 +264,8 @@ export interface IConfig {
     radarAutoNormalize: boolean;
     radarHasIntensity: boolean;
     radarHasSnr: boolean;
+    radarIntensity: [number, number];
+    radarIntensityRange: [number, number];
     radarEdgeColor: [string, string];
     radarSingleColor: string;
     radarPointHeight: [number, number];

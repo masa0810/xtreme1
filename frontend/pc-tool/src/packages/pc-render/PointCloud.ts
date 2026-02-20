@@ -44,7 +44,7 @@ export default class PointCloud extends THREE.EventDispatcher {
     private pointAutoNormalize: boolean = false;
     private radarRawData: any = null;
     private radarOpenIntensity: boolean = false;
-    private radarAutoNormalize: boolean = true;
+    private radarAutoNormalize: boolean = false;
 
     constructor() {
         super();

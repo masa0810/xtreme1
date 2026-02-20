@@ -128,6 +128,7 @@
                     </a-radio-group>
                 </div>
             </div>
+            <div class="section-divider"></div>
             <div class="title2">
                 <span style="vertical-align: middle; margin-right: 10px">{{
                     $$('setting_lidar_section')
@@ -196,50 +197,43 @@
                         v-model:checked="state.config.openIntensity"
                     />
                 </div>
-                <div class="title3" style="padding-top: 10px"
-                    >{{ $$('setting_auto_normalize') }}
-                    <a-switch
-                        size="small"
-                        style="margin-top: 5px; float: right"
-                        v-model:checked="config.pointAutoNormalize"
-                        :disabled="!config.pointInfo.hasIntensity"
-                    />
-                </div>
-                <div class="title3" style="padding-top: 10px">
-                    <a-input-number
-                        v-model:value="config.pointIntensity[0]"
-                        size="small"
-                        :min="0"
-                        :max="255"
-                        style="width: 80px"
-                    ></a-input-number>
-                    <a-input-number
-                        v-model:value="config.pointIntensity[1]"
-                        size="small"
-                        :min="0"
-                        :max="255"
-                        style="width: 80px"
-                    ></a-input-number>
-                    <a-button
-                        :title="$$('setting_pointreset')"
-                        size="small"
-                        style="border: none"
-                        @click="onResetIntensity"
-                    >
-                        <template #icon>
-                            <RetweetOutlined />
-                        </template>
-                    </a-button>
-                </div>
-                <div style="margin-top: 5px; width: 100%" class="title3">
-                    <a-slider
-                        range
-                        v-model:value="config.pointIntensity"
-                        :min="0"
-                        :max="255"
-                        :step="0.1"
-                    />
-                </div>
+                <template v-if="config.openIntensity">
+                    <div class="title3" style="padding-top: 10px">
+                        <a-input-number
+                            v-model:value="config.pointIntensity[0]"
+                            size="small"
+                            :min="0"
+                            :max="255"
+                            style="width: 80px"
+                        ></a-input-number>
+                        <a-input-number
+                            v-model:value="config.pointIntensity[1]"
+                            size="small"
+                            :min="0"
+                            :max="255"
+                            style="width: 80px"
+                        ></a-input-number>
+                        <a-button
+                            :title="$$('setting_pointreset')"
+                            size="small"
+                            style="border: none"
+                            @click="onResetIntensity"
+                        >
+                            <template #icon>
+                                <RetweetOutlined />
+                            </template>
+                        </a-button>
+                    </div>
+                    <div style="margin-top: 5px; width: 100%" class="title3">
+                        <a-slider
+                            range
+                            v-model:value="config.pointIntensity"
+                            :min="0"
+                            :max="255"
+                            :step="0.1"
+                        />
+                    </div>
+                </template>
             </div>
             <div class="section-divider"></div>
             <div class="title2">
@@ -402,16 +396,49 @@
                         :disabled="!config.radarHasIntensity && !config.radarHasSnr"
                     />
                 </div>
-                <div class="title3" style="padding-top: 10px"
-                    >{{ $$('setting_radar_auto_normalize') }}
-                    <a-switch
-                        size="small"
-                        style="margin-top: 5px; float: right"
-                        v-model:checked="config.radarAutoNormalize"
-                        :disabled="!config.radarHasIntensity && !config.radarHasSnr"
-                    />
-                </div>
+                <template v-if="config.radarOpenIntensity && (config.radarHasIntensity || config.radarHasSnr)">
+                    <div class="title3" style="padding-top: 10px">
+                        <a-input-number
+                            v-model:value="config.radarIntensity[0]"
+                            size="small"
+                            :step="0.1"
+                            :formatter="formatter"
+                            :min="config.radarIntensityRange[0]"
+                            :max="config.radarIntensity[1]"
+                            style="width: 80px"
+                        ></a-input-number>
+                        <a-input-number
+                            v-model:value="config.radarIntensity[1]"
+                            size="small"
+                            :step="0.1"
+                            :formatter="formatter"
+                            :min="config.radarIntensity[0]"
+                            :max="config.radarIntensityRange[1]"
+                            style="width: 80px"
+                        ></a-input-number>
+                        <a-button
+                            :title="$$('setting_pointreset')"
+                            size="small"
+                            style="border: none"
+                            @click="onResetRadarIntensity"
+                        >
+                            <template #icon>
+                                <RetweetOutlined />
+                            </template>
+                        </a-button>
+                    </div>
+                    <div style="margin-top: 5px; width: 100%" class="title3">
+                        <a-slider
+                            range
+                            v-model:value="config.radarIntensity"
+                            :min="config.radarIntensityRange[0]"
+                            :max="config.radarIntensityRange[1]"
+                            :step="0.1"
+                        />
+                    </div>
+                </template>
             </div>
+            <div class="section-divider" v-if="!_config.noUtility"></div>
             <div class="title2" v-if="!_config.noUtility">
                 <span style="vertical-align: middle; margin-right: 10px">{{ $$('utility') }}</span>
                 <!-- <div class="divider"></div> -->
@@ -585,9 +612,6 @@
             case 'intensity':
                 options.openIntensity = config.openIntensity ? 1.0 : -1.0;
                 break;
-            case 'pointAutoNormalize':
-                editor.setPointAutoNormalize(config.pointAutoNormalize);
-                return;
             case 'brightness':
                 options.brightness = config.brightness;
                 break;
@@ -606,8 +630,13 @@
             case 'radarOpenIntensity':
                 pc.setRadarOpenIntensity(config.radarOpenIntensity);
                 return;
-            case 'radarAutoNormalize':
-                pc.setRadarAutoNormalize(config.radarAutoNormalize);
+            case 'radarIntensityRange':
+                pc.setRadarUniforms({
+                    intensityRange: new THREE.Vector2(
+                        config.radarIntensity[0],
+                        config.radarIntensity[1],
+                    ),
+                });
                 return;
             case 'radarPointHeight':
                 pc.setRadarUniforms({
@@ -686,6 +715,9 @@
         config.radarEdgeColor = ['#000dff', '#ff0000'];
         update('radarEdgeColor');
     }
+    function onResetRadarIntensity() {
+        config.radarIntensity = [...config.radarIntensityRange] as [number, number];
+    }
     function onResetBrightness() {
         config.brightness = 1;
         update('brightness');
@@ -720,13 +752,6 @@
     );
 
     watch(
-        () => config.pointAutoNormalize,
-        () => {
-            update('pointAutoNormalize');
-        },
-    );
-
-    watch(
         () => config.pointLayerMode,
         () => {
             update('pointLayerMode');
@@ -748,9 +773,19 @@
     );
 
     watch(
-        () => config.radarAutoNormalize,
+        () => [config.radarIntensity[0], config.radarIntensity[1]],
         () => {
-            update('radarAutoNormalize');
+            const [rangeMin, rangeMax] = config.radarIntensityRange;
+            const [min, max] = config.radarIntensity;
+            if (!isFinite(min) || !isFinite(max)) return;
+            const nextMin = THREE.MathUtils.clamp(min, rangeMin, rangeMax);
+            const nextMax = THREE.MathUtils.clamp(max, rangeMin, rangeMax);
+            if (nextMin > nextMax) return;
+            if (nextMin !== min || nextMax !== max) {
+                config.radarIntensity = [nextMin, nextMax];
+                return;
+            }
+            update('radarIntensityRange');
         },
     );
 

@@ -22,7 +22,6 @@ const en = {
     setting_colorsingle: 'Single',
     setting_lidar_section: 'LiDAR',
     setting_radar_section: 'Radar',
-    setting_auto_normalize: 'Auto Normalize',
     setting_point_layer_mode: 'Layer',
     setting_point_layer_both: 'Both',
     setting_lidar_opacity: 'Opacity',
@@ -31,7 +30,6 @@ const en = {
     setting_radar_color_attr: 'Radar Attribute',
     setting_radar_attr_intensity: 'Intensity',
     setting_radar_attr_snr: 'SNR',
-    setting_radar_auto_normalize: 'Auto Normalize',
 
     title_rect: 'Create Rect',
     title_create2DBox: 'Create Box(2D)',

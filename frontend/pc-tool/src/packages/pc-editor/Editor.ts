@@ -366,12 +366,27 @@ export default class Editor extends THREE.EventDispatcher {
     setRadarPointCloudData(data: any) {
         const hasIntensity = Array.isArray(data?.intensity) && data.intensity.length > 0;
         const hasSnr = Array.isArray(data?.snr) && data.snr.length > 0;
+        const radarSource = hasIntensity ? data.intensity : data?.snr;
+        const radarIntensityRange = getNumericRange(radarSource);
         this.state.config.radarHasIntensity = hasIntensity;
         this.state.config.radarHasSnr = hasSnr;
+        if (radarIntensityRange) {
+            const [min, max] = radarIntensityRange;
+            this.state.config.radarIntensityRange = [min, max];
+            this.state.config.radarIntensity = [
+                THREE.MathUtils.clamp(this.state.config.radarIntensity[0], min, max),
+                THREE.MathUtils.clamp(this.state.config.radarIntensity[1], min, max),
+            ];
+        } else {
+            this.state.config.radarIntensityRange = [0, 255];
+            this.state.config.radarIntensity = [0, 255];
+        }
 
         this.radarPointsData = data;
         this.pc.setRadarOpenIntensity(this.state.config.radarOpenIntensity);
-        this.pc.setRadarAutoNormalize(this.state.config.radarAutoNormalize);
+        this.pc.setRadarUniforms({
+            intensityRange: new THREE.Vector2().fromArray(this.state.config.radarIntensity),
+        });
         this.pc.setRadarPointCloudData(data);
     }
 
@@ -379,6 +394,8 @@ export default class Editor extends THREE.EventDispatcher {
         this.radarPointsData = null;
         this.state.config.radarHasIntensity = false;
         this.state.config.radarHasSnr = false;
+        this.state.config.radarIntensityRange = [0, 255];
+        this.state.config.radarIntensity = [0, 255];
         this.pc.clearRadarPointCloudData();
     }
 
@@ -453,4 +470,18 @@ export default class Editor extends THREE.EventDispatcher {
         let filterSelection = selection.filter((e) => selectionMap[e.uuid]);
         this.pc.selectObject(filterSelection);
     }
+}
+
+function getNumericRange(source: unknown): [number, number] | undefined {
+    if (!Array.isArray(source) || source.length === 0) return undefined;
+    let min = Infinity;
+    let max = -Infinity;
+    for (const item of source) {
+        const value = Number(item);
+        if (!isFinite(value)) continue;
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+    }
+    if (!isFinite(min) || !isFinite(max)) return undefined;
+    return [min, max];
 }
