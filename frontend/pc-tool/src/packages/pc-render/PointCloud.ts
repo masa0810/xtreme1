@@ -310,11 +310,13 @@ export default class PointCloud extends THREE.EventDispatcher {
     setPointOpacity(opacity: number) {
         this.pointOpacity = _.clamp(opacity, 0, 1);
         this.material.setUniforms({ globalOpacity: this.pointOpacity });
+        this.applyOpacityMaterialState(this.material, this.pointOpacity);
         this.render();
     }
     setRadarOpacity(opacity: number) {
         this.radarOpacity = _.clamp(opacity, 0, 1);
         this.radarMaterial.setUniforms({ globalOpacity: this.radarOpacity });
+        this.applyOpacityMaterialState(this.radarMaterial, this.radarOpacity);
         this.render();
     }
     setPointAutoNormalize(flag: boolean) {
@@ -397,6 +399,16 @@ export default class PointCloud extends THREE.EventDispatcher {
         }
         if (this.radarPoints) {
             this.radarPoints.visible = this.pointLayerMode !== 'lidar';
+        }
+    }
+
+    private applyOpacityMaterialState(material: PointsMaterial, opacity: number) {
+        const transparent = opacity < 1;
+        const depthWrite = !transparent;
+        if (material.transparent !== transparent || material.depthWrite !== depthWrite) {
+            material.transparent = transparent;
+            material.depthWrite = depthWrite;
+            material.needsUpdate = true;
         }
     }
 

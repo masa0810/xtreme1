@@ -48,3 +48,12 @@
 - 15:13 #impl Radar 読込時に intensity/snr の実データ範囲を算出して `radarIntensityRange` と `radarIntensity` を同期し、uniform `intensityRange` へ反映する処理を追加した。
 - 15:14 #test `npm --prefix frontend/pc-tool run test:unit -- src/packages/pc-editor/common/ConfigManager.spec.ts src/packages/pc-render/PointCloud.spec.ts` と `npm --prefix frontend/pc-tool run build` の成功を確認した。
 - 15:14 #test Playwright で Radar Intensity ON 時にレンジ入力とスライダーが表示されることを確認し、`2026-02-20_radar-intensity-controls-on.png` を取得した。
+- 16:33 #debug Layer=`Both` と `Radar` の見え方が同じ件を Playwright で再現し、`mode=both` かつ `lidarVisible=true` / `radarVisible=true` を確認した。
+- 16:34 #debug `Radar` と `Both` のメイン canvas 画像ハッシュが一致し、テストデータ重畳時に Radar が前面に見える描画順起因であることを確認した。
+- 16:51 #debug `Radar Opacity=0` でも LiDAR が見えない件を調査し、`globalOpacity` のみ更新され `transparent=false` / `depthWrite=true` のまま深度を書き込むことを根因として特定した。
+- 16:51 #impl `PointCloud.setPointOpacity` / `setRadarOpacity` に opacity 連動のマテリアル状態制御（`opacity<1` で `transparent=true` + `depthWrite=false`）を追加した。
+- 16:51 #test `PointCloud.spec.ts` に深度書き込み制御テストを追加し、失敗を確認後に修正して成功させた。
+- 16:52 #test `npm --prefix frontend/pc-tool run test:unit -- src/packages/pc-render/PointCloud.spec.ts src/packages/pc-editor/common/ConfigManager.spec.ts` と `npm --prefix frontend/pc-tool run build` の成功を確認した。
+- 16:59 #verify Phase2.5 の確認として `data id=30 (frame 000115)` の `camera_config` を取得し、`radars[0].radar_external`（長さ 16, rowMajor=true）を確認した。
+- 17:02 #verify 同一フレームの `lidar_point_cloud_0/000115.pcd` と `radar_point_cloud_0/000115.pcd` の SHA256 が一致することを確認した（現行検証データは同一点群である）。
+- 17:03 #note 表示要件に合わせて LiDAR/Radar の `Auto Normalize` UI を撤去し、Intensity ON 時のみレンジコントロールを表示する構成へ更新した。

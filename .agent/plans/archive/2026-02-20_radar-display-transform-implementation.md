@@ -5,7 +5,7 @@
 - Owner: @copilot
 - Created: 2026-02-20
 - Last updated: 2026-02-20
-- Status: Active
+- Status: Done
 - Related: `.agent/strategy/2026-02-20_radar-display-transform-design.md`
 - Work log: `.agent/worklog/2026-02-20_radar-display-transform-implementation.md`
 
@@ -21,7 +21,7 @@ In-scope:
 
 - `camera_config` の新旧互換パース（配列形式 / `{ cameras, radars }` / `{ camera, radar }`）を実装する。
 - Radar 座標変換契約を backend へ明示し、frontend は変換済みデータ前提で処理する。
-- Display パネルへ Radar レイヤー選択と Radar 専用着色設定（属性、自動正規化、カラーマップ）を追加する。
+- Display パネルへ Radar レイヤー選択と Radar 専用着色設定（属性、カラーマップ）を追加する。
 - 単体テスト、既存 E2E スモーク、手動確認を更新する。
 
 Out-of-scope（非目標）:
@@ -47,7 +47,7 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 ## Risks / Unknowns
 
 - backend 側で Radar 変換適用が未完了の場合、frontend だけでは要件達成できない可能性がある。
-- Radar の `snr/intensity` 分布がデータセットごとに偏る場合、自動正規化の視覚結果が不安定になる可能性がある。
+- Radar の `snr/intensity` 分布がデータセットごとに偏る場合、Intensity 閾値調整の既定値が不適切になる可能性がある。
 - 既存 `setSharedPointUniforms` の挙動変更が LiDAR 表示に副作用を与える可能性がある。
 
 ## Plan
@@ -61,7 +61,7 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 - Phase 3: 描画・状態管理の Radar 独立化
   - Radar レイヤー表示モードと Radar 専用着色 Uniform を分離適用する。
 - Phase 4: Display パネル拡張
-  - レイヤー選択、属性選択、自動正規化、カラーマップ UI を追加する。
+  - レイヤー選択、属性選択、カラーマップ UI を追加し、Intensity 閾値調整を LiDAR/Radar で分離する。
 - Phase 5: 検証・ドキュメント更新
   - 単体/E2E/手動確認を実施し、README と検証手順を更新する。
 
@@ -69,33 +69,42 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 
 - [x] Phase 1: 仕様固定とテスト先行
 - [x] Phase 2: `camera_config` 正規化とデータ契約反映
-- [ ] Phase 2.5: backend 座標変換の確認観点固定
+- [x] Phase 2.5: backend 座標変換の確認観点固定
 - [x] Phase 3: 描画・状態管理の Radar 独立化
 - [x] Phase 4: Display パネル拡張
-- [ ] Phase 5: 検証・ドキュメント更新
+- [x] Phase 5: 検証・ドキュメント更新
 
 ## Acceptance Criteria
 
 - `camera_config` の配列形式 / `{ cameras, radars }` / `{ camera, radar }` の各形式でフレーム読込が成立する。
 - Display パネルで `LiDAR のみ / Radar のみ / 両方` 切替が機能する。
-- Radar 着色設定（`snr/intensity`、自動正規化、カラーマップ）が描画へ反映される。
+- Radar 着色設定（`snr/intensity`、カラーマップ、Intensity 閾値）が描画へ反映される。
 - Radar 欠損または属性欠損時に LiDAR 注釈フローが継続できる。
 
 ## Verification
 
 - Unit:
   - `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-editor/utils/common.spec.ts`
+  - `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-editor/common/ConfigManager.spec.ts`
   - `npm --prefix frontend/pc-tool run test:unit -- --run src/packages/pc-render/PointCloud.spec.ts`
 - Backend:
-  - 現行データセットの `camera_config` から `radars`（または `radar`）行列を取得し、同一フレームで
-    Radar 点群の変換前後座標を比較して、行列適用結果が期待どおりであることを確認する。
-  - 必要に応じて backend 側の変換ロジック単体テストを追加し、代表点で数値比較を行う。
+  - 現行データセット `datasetId=3 / dataId=30 (000115)` の `camera_config` を取得し、
+    `radars[0].radar_external` が `rowMajor=true`・長さ 16 の行列として取得できることを確認した。
+  - 同一フレームの `lidar_point_cloud_0/000115.pcd` と `radar_point_cloud_0/000115.pcd` の SHA256 が一致することを確認した。
+    現行検証データは LiDAR/Radar 同一点群のため、変換数値比較は新規配布データ受領後に追試する。
 - Build:
   - `npm --prefix frontend/pc-tool run build`
 - E2E（環境変数設定済み前提）:
   - `npm --prefix frontend/pc-tool run test:e2e -- --grep \"@scenario|@smoke\"`
 - Manual:
   - LiDAR-only データ、LiDAR+Radar データ、Radar 属性欠損データの 3 ケースで画面確認する。
+
+## Closure Summary
+
+- `camera_config` の新旧形式（`cameras/camera`, `radars/radar`）受理を実装し、単体テストで固定した。
+- Display パネルで LiDAR/Radar/Both の切替と、LiDAR/Radar 独立の色・Intensity 設定を実装した。
+- `Opacity` に深度制御を連動させ、重畳時に `Opacity=0` で背面点群を視認できるよう修正した。
+- `Auto Normalize` UI は要件見直しにより撤去し、Intensity ON 時のみ閾値コントロールを表示する構成へ調整した。
 
 ## Rollback Plan
 
@@ -110,3 +119,4 @@ UI は既存 Display パネルへ最小追加し、既存コンポーネント�
 - 2026-02-20: backend 変換確認は新規配布テストデータを待たず、現行データの `radars/radar` 行列で検証する方針に更新した。
 - 2026-02-20: Radar 表示を LiDAR 設定から分離し、Display でレイヤー/属性/正規化を独立制御する構成に更新した。
 - 2026-02-20: Radar 追加実装では LiDAR 既存ロジックの再利用を優先し、データ形式と UI 機能が同等な箇所は共通関数へ統合する方針に更新した。
+- 2026-02-20: `Auto Normalize` は運用要件に合わせて UI から撤去し、Intensity 閾値制御を明示的に操作する方針へ変更した。

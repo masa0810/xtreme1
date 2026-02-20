@@ -86,6 +86,28 @@ describe('PointCloud', () => {
         vi.unstubAllGlobals();
     });
 
+    it('opacity が 1 未満のときは深度書き込みを無効化する', () => {
+        vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
+        const pc = new PointCloud();
+
+        pc.setPointOpacity(0);
+        expect(pc.material.transparent).toBe(true);
+        expect(pc.material.depthWrite).toBe(false);
+
+        pc.setPointOpacity(1);
+        expect(pc.material.transparent).toBe(false);
+        expect(pc.material.depthWrite).toBe(true);
+
+        pc.setRadarOpacity(0);
+        expect(pc.radarMaterial.transparent).toBe(true);
+        expect(pc.radarMaterial.depthWrite).toBe(false);
+
+        pc.setRadarOpacity(1);
+        expect(pc.radarMaterial.transparent).toBe(false);
+        expect(pc.radarMaterial.depthWrite).toBe(true);
+        vi.unstubAllGlobals();
+    });
+
     it('Radar の自動正規化を切り替えできる', () => {
         vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
         const pc = new PointCloud();
