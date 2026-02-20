@@ -16,6 +16,33 @@ export function getPositionGround(position: number[]) {
     return maxKey;
 }
 
+export function getHeightRangeByGroundAndMax(
+    position: number[],
+    fallback: [number, number] = [-10, 10],
+) {
+    if (!Array.isArray(position) || position.length < 3) {
+        return fallback;
+    }
+
+    let maxZ = -Infinity;
+    for (let i = 2; i < position.length; i += 3) {
+        const z = Number(position[i]);
+        if (Number.isFinite(z)) {
+            maxZ = Math.max(maxZ, z);
+        }
+    }
+
+    const ground = getPositionGround(position);
+    if (!Number.isFinite(ground) || !Number.isFinite(maxZ)) {
+        return fallback;
+    }
+
+    const round = (value: number) => Math.round(value * 10) / 10;
+    const min = Math.min(ground, maxZ);
+    const max = Math.max(ground, maxZ);
+    return [round(min), round(max)] as [number, number];
+}
+
 export function statisticPositionInfo(position: number[], precision = 2, index = 2) {
     let info = {};
     let len = position.length;

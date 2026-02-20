@@ -38,10 +38,12 @@ export default class PointCloud extends THREE.EventDispatcher {
     private lidarPoints?: Points;
     private radarPoints?: Points;
     private pointLayerMode: 'lidar' | 'radar' | 'both' = 'both';
-    private radarVisible: boolean = true;
-    private radarOpacity: number = 0.5;
+    private pointOpacity: number = 1;
+    private radarOpacity: number = 1;
+    private lidarRawData: any = null;
+    private pointAutoNormalize: boolean = false;
     private radarRawData: any = null;
-    private radarColorAttr: 'intensity' | 'snr' = 'intensity';
+    private radarOpenIntensity: boolean = false;
     private radarAutoNormalize: boolean = true;
 
     constructor() {
@@ -86,6 +88,7 @@ export default class PointCloud extends THREE.EventDispatcher {
         this.selectionMap = {};
         this.renderViews = [];
 
+        this.material.setUniforms({ globalOpacity: this.pointOpacity });
         this.radarMaterial.setUniforms({ globalOpacity: this.radarOpacity });
 
         // test
@@ -284,9 +287,10 @@ export default class PointCloud extends THREE.EventDispatcher {
 
     // *********************************************
     setPointCloudData(data: any) {
+        this.lidarRawData = data;
         const points = this.getOrCreateLidarPoints();
         // this.dispatchEvent({ type: Event.LOAD_POINT_BEFORE });
-        points.updateData(data);
+        points.updateData(this.normalizePointRenderData(data));
         this.render();
         // this.dispatchEvent({ type: Event.LOAD_POINT_AFTER });
     }
@@ -303,9 +307,9 @@ export default class PointCloud extends THREE.EventDispatcher {
         }
         this.render();
     }
-    setRadarVisible(visible: boolean) {
-        this.radarVisible = visible;
-        this.applyPointLayerVisibility();
+    setPointOpacity(opacity: number) {
+        this.pointOpacity = _.clamp(opacity, 0, 1);
+        this.material.setUniforms({ globalOpacity: this.pointOpacity });
         this.render();
     }
     setRadarOpacity(opacity: number) {
@@ -313,8 +317,12 @@ export default class PointCloud extends THREE.EventDispatcher {
         this.radarMaterial.setUniforms({ globalOpacity: this.radarOpacity });
         this.render();
     }
-    setRadarColorAttr(attr: 'intensity' | 'snr') {
-        this.radarColorAttr = attr;
+    setPointAutoNormalize(flag: boolean) {
+        this.pointAutoNormalize = flag;
+        this.reloadPointCloud();
+    }
+    setRadarOpenIntensity(flag: boolean) {
+        this.radarOpenIntensity = flag;
         this.reloadRadarPoints();
     }
     setRadarAutoNormalize(flag: boolean) {
@@ -388,7 +396,7 @@ export default class PointCloud extends THREE.EventDispatcher {
             this.lidarPoints.visible = this.pointLayerMode !== 'radar';
         }
         if (this.radarPoints) {
-            this.radarPoints.visible = this.radarVisible && this.pointLayerMode !== 'lidar';
+            this.radarPoints.visible = this.pointLayerMode !== 'lidar';
         }
     }
 
@@ -413,12 +421,26 @@ export default class PointCloud extends THREE.EventDispatcher {
         this.render();
     }
 
+    private reloadPointCloud() {
+        if (!this.lidarRawData || !this.lidarPoints) return;
+        this.lidarPoints.updateData(this.normalizePointRenderData(this.lidarRawData));
+        this.render();
+    }
+
+    private normalizePointRenderData(data: any) {
+        const source = data?.intensity;
+        const hasIntensity = Array.isArray(source) && source.length > 0;
+        if (!hasIntensity) {
+            return data;
+        }
+        if (!this.pointAutoNormalize) {
+            return { ...data, intensity: [...source] };
+        }
+        return { ...data, intensity: normalizeToByte(source as number[]) };
+    }
+
     private normalizeRadarRenderData(data: any) {
-        const selectedSource = this.radarColorAttr === 'snr' ? data?.snr : data?.intensity;
-        const fallbackSource = this.radarColorAttr === 'snr' ? data?.intensity : data?.snr;
-        const source = Array.isArray(selectedSource) && selectedSource.length > 0
-            ? selectedSource
-            : fallbackSource;
+        const source = Array.isArray(data?.intensity) && data.intensity.length > 0 ? data.intensity : data?.snr;
         const hasIntensity = Array.isArray(source) && source.length > 0;
         this.radarMaterial.setOption({
             hasIntensity,
@@ -427,7 +449,7 @@ export default class PointCloud extends THREE.EventDispatcher {
         });
         this.radarMaterial.setUniforms({
             colorMode: this.radarMaterial.getUniforms('colorMode') ?? ColorModeEnum.HEIGHT,
-            openIntensity: hasIntensity ? 1.0 : -1.0,
+            openIntensity: this.radarOpenIntensity && hasIntensity ? 1.0 : -1.0,
         });
         if (!hasIntensity) {
             return { ...data, intensity: [] };

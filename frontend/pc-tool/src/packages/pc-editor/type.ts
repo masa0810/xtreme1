@@ -254,15 +254,19 @@ export interface IConfig {
     pointHeight: [number, number];
     pointVelocity: [number, number];
     brightness: number; // 强度因子
+    lidarOpacity: number;
     openIntensity: boolean;
+    pointAutoNormalize: boolean;
     pointLayerMode: 'lidar' | 'radar' | 'both';
-    radarVisible: boolean;
     radarOpacity: number;
     radarColorMode: ColorModeEnum;
-    radarColorAttr: 'intensity' | 'snr';
+    radarOpenIntensity: boolean;
     radarAutoNormalize: boolean;
     radarHasIntensity: boolean;
     radarHasSnr: boolean;
+    radarEdgeColor: [string, string];
+    radarSingleColor: string;
+    radarPointHeight: [number, number];
     // renderProjectRect: boolean;
     renderRect: boolean;
     renderBox: boolean;

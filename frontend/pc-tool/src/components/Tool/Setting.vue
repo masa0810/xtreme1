@@ -81,7 +81,7 @@
                     }}</a-button>
                 </div>
                 <a-slider
-                    style="width: 200px; margin: 0px; margin-top: 5px"
+                    style="width: 100%; margin: 0px; margin-top: 5px"
                     v-model:value="config.pointSize"
                     :tip-formatter="formatter"
                     :min="1"
@@ -100,7 +100,7 @@
                     >
                 </div>
                 <a-slider
-                    style="width: 200px; margin: 0px; margin-top: 5px"
+                    style="width: 100%; margin: 0px; margin-top: 5px"
                     v-model:value="config.brightness"
                     :tip-formatter="formatter"
                     :min="0.1"
@@ -127,32 +127,31 @@
                         </a-radio-button>
                     </a-radio-group>
                 </div>
+            </div>
+            <div class="title2">
+                <span style="vertical-align: middle; margin-right: 10px">{{
+                    $$('setting_lidar_section')
+                }}</span>
+            </div>
+            <div class="wrap">
                 <div class="title3"
-                    >{{ $$('setting_radar_visible') }}
-                    <a-switch
-                        size="small"
-                        style="margin-top: 5px; float: right"
-                        v-model:checked="config.radarVisible"
-                    />
-                </div>
-                <div class="title3"
-                    >{{ $$('setting_radar_opacity') }}
+                    >{{ $$('setting_lidar_opacity') }}
                     <a-button
                         type="dashed"
                         class="reset"
                         size="small"
-                        @click="onResetRadarOpacity"
+                        @click="onResetLidarOpacity"
                         >{{ $$('setting_pointreset') }}</a-button
                     >
                 </div>
                 <a-slider
-                    style="width: 200px; margin: 0px; margin-top: 5px"
-                    v-model:value="config.radarOpacity"
+                    style="margin-top: 5px"
+                    v-model:value="config.lidarOpacity"
                     :tip-formatter="formatter"
                     :min="0"
                     :max="1"
                     :step="0.05"
-                    @change="() => update('radarOpacity')"
+                    @change="() => update('lidarOpacity')"
                 />
             </div>
             <div class="wrap">
@@ -197,6 +196,15 @@
                         v-model:checked="state.config.openIntensity"
                     />
                 </div>
+                <div class="title3" style="padding-top: 10px"
+                    >{{ $$('setting_auto_normalize') }}
+                    <a-switch
+                        size="small"
+                        style="margin-top: 5px; float: right"
+                        v-model:checked="config.pointAutoNormalize"
+                        :disabled="!config.pointInfo.hasIntensity"
+                    />
+                </div>
                 <div class="title3" style="padding-top: 10px">
                     <a-input-number
                         v-model:value="config.pointIntensity[0]"
@@ -223,7 +231,7 @@
                         </template>
                     </a-button>
                 </div>
-                <div style="margin: 5px 0 0 5px; margin-top: 5px; width: 180px" class="title3">
+                <div style="margin-top: 5px; width: 100%" class="title3">
                     <a-slider
                         range
                         v-model:value="config.pointIntensity"
@@ -233,7 +241,32 @@
                     />
                 </div>
             </div>
+            <div class="section-divider"></div>
+            <div class="title2">
+                <span style="vertical-align: middle; margin-right: 10px">{{
+                    $$('setting_radar_section')
+                }}</span>
+            </div>
             <div class="wrap">
+                <div class="title3"
+                    >{{ $$('setting_radar_opacity') }}
+                    <a-button
+                        type="dashed"
+                        class="reset"
+                        size="small"
+                        @click="onResetRadarOpacity"
+                        >{{ $$('setting_pointreset') }}</a-button
+                    >
+                </div>
+                <a-slider
+                    style="margin-top: 5px"
+                    v-model:value="config.radarOpacity"
+                    :tip-formatter="formatter"
+                    :min="0"
+                    :max="1"
+                    :step="0.05"
+                    @change="() => update('radarOpacity')"
+                />
                 <div class="title3"
                     >{{ $$('setting_radar_color_mode') }}
                     <br />
@@ -256,29 +289,118 @@
                         </a-radio-button>
                     </a-radio-group>
                 </div>
-                <div class="title3" style="padding-top: 10px"
-                    >{{ $$('setting_radar_color_attr') }}
-                    <br />
-                    <a-radio-group
-                        v-model:value="config.radarColorAttr"
+                <div
+                    v-if="config.radarColorMode === ColorModeEnum.HEIGHT"
+                    class="title3 radar-height-title"
+                    style="padding: 6px 0 0 14px"
+                    >{{ $$('setting_colorheight') }}
+                    <a-button
+                        :title="$$('setting_pointreset')"
                         size="small"
-                        style="font-size: 12px; margin-top: 5px"
+                        style="border: none; float: right"
+                        @click="onResetRadarHeight"
                     >
-                        <a-radio-button
-                            value="intensity"
-                            :disabled="!config.radarHasIntensity"
-                            style="width: 95px; text-align: center"
-                        >
-                            {{ $$('setting_radar_attr_intensity') }}
-                        </a-radio-button>
-                        <a-radio-button
-                            value="snr"
-                            :disabled="!config.radarHasSnr"
-                            style="width: 95px; text-align: center"
-                        >
-                            {{ $$('setting_radar_attr_snr') }}
-                        </a-radio-button>
-                    </a-radio-group>
+                        <template #icon>
+                            <RetweetOutlined />
+                        </template>
+                    </a-button>
+                    <a-input-number
+                        v-model:value="config.radarPointHeight[1]"
+                        size="small"
+                        :step="0.1"
+                        :formatter="formatter"
+                        @change="() => updateRadarHeight(false)"
+                        @blur="onBlurRadarHeight"
+                        :min="config.radarPointHeight[0] || radarHeightRange[0]"
+                        :max="radarHeightRange[1]"
+                        style="float: right; width: 60px"
+                    ></a-input-number>
+                    <a-input-number
+                        v-model:value="config.radarPointHeight[0]"
+                        size="small"
+                        :step="0.1"
+                        :formatter="formatter"
+                        @change="() => updateRadarHeight(false)"
+                        @blur="onBlurRadarHeight"
+                        :min="radarHeightRange[0]"
+                        :max="config.radarPointHeight[1] || radarHeightRange[1]"
+                        style="float: right; width: 60px"
+                    ></a-input-number>
+                </div>
+                <div
+                    class="color-item-container radar-color-item"
+                    v-show="config.radarColorMode === ColorModeEnum.HEIGHT"
+                >
+                    <a-tooltip trigger="click" placement="topLeft">
+                        <template #title>
+                            <color-picker
+                                :isWidget="true"
+                                pickerType="chrome"
+                                useType="pure"
+                                :disableAlpha="true"
+                                :disableHistory="true"
+                                v-model:pureColor="config.radarEdgeColor[0]"
+                                @pureColorChange="() => update('radarEdgeColor')"
+                            />
+                        </template>
+                        <div class="color-span" :style="{ background: config.radarEdgeColor[0] }"></div>
+                    </a-tooltip>
+                    <div :style="{ background: radarColorCodeBg }" class="color-slider">
+                        <a-slider
+                            style="margin: 0; width: 100%"
+                            :value="_radarPointHeight"
+                            range
+                            :min="radarHeightRange[0]"
+                            :max="radarHeightRange[1]"
+                            :step="0.1"
+                            @change="onChangeRadarHeight"
+                            @afterChange="() => updateRadarHeight(true)"
+                        />
+                    </div>
+                    <a-tooltip trigger="click" placement="topLeft">
+                        <template #title>
+                            <color-picker
+                                :isWidget="true"
+                                pickerType="chrome"
+                                useType="pure"
+                                :disableAlpha="true"
+                                :disableHistory="true"
+                                v-model:pureColor="config.radarEdgeColor[1]"
+                                @pureColorChange="() => update('radarEdgeColor')"
+                            />
+                        </template>
+                        <div class="color-span" :style="{ background: config.radarEdgeColor[1] }"></div>
+                    </a-tooltip>
+                </div>
+                <div class="color-item-container radar-color-item" v-show="config.radarColorMode === ColorModeEnum.PURE">
+                    <a-tooltip trigger="click" placement="topLeft">
+                        <template #title>
+                            <color-picker
+                                :isWidget="true"
+                                pickerType="chrome"
+                                useType="pure"
+                                :disableAlpha="true"
+                                :disableHistory="true"
+                                v-model:pureColor="config.radarSingleColor"
+                                @pureColorChange="() => update('radarSingleColor')"
+                            />
+                        </template>
+                        <div class="color-span" :style="{ background: config.radarSingleColor }"></div>
+                    </a-tooltip>
+                </div>
+                <div class="title3" style="margin-top: 10px; margin-bottom: 4px; height: 24px">
+                    <a-button type="dashed" class="reset" size="small" @click="onResetRadarColor">{{
+                        $$('setting_colorreset')
+                    }}</a-button>
+                </div>
+                <div class="title3" style="padding-top: 10px"
+                    >{{ $$('setting_colorintensity') }}
+                    <a-switch
+                        size="small"
+                        style="margin-top: 5px; float: right"
+                        v-model:checked="config.radarOpenIntensity"
+                        :disabled="!config.radarHasIntensity && !config.radarHasSnr"
+                    />
                 </div>
                 <div class="title3" style="padding-top: 10px"
                     >{{ $$('setting_radar_auto_normalize') }}
@@ -338,7 +460,7 @@
 </template>
 
 <script setup lang="ts">
-    import { watch, onMounted, reactive, ref, computed } from 'vue';
+    import { watch, onMounted, reactive, computed } from 'vue';
     import * as THREE from 'three';
     import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
     // import { getColorRange } from '../../utils';
@@ -346,12 +468,13 @@
     import { useInjectState, useInjectEditor } from '../../state';
     // import useRenderConfig from '../hook/useRenderConfig';
     import { RetweetOutlined } from '@ant-design/icons-vue';
-    import { Event, Image2DRenderView } from 'pc-render';
+    import { Image2DRenderView, utils as renderUtils } from 'pc-render';
     // import useLang from '../../hook/useLang';
     import * as locale from './lang';
     import { IConfig } from './useTool';
     import ColorSlider from './colorSlider.vue';
-    import { ColorModeEnum } from 'pc-editor';
+    import { ColorModeEnum, utils } from 'pc-editor';
+    import { formatInputNumberValue } from './numberFormat';
     let editor = useInjectEditor();
     let $$ = editor.bindLocale(locale);
     let pc = editor.pc;
@@ -373,8 +496,8 @@
     const emit = defineEmits(['close']);
 
     // *********************************************
-    const formatter = (value: number) => {
-        return value.toFixed(2);
+    const formatter = (value: number | string | undefined) => {
+        return formatInputNumberValue(value);
     };
     const iState = reactive({
         colorCodeBg: 'transparent',
@@ -382,6 +505,35 @@
         measureOpen: false,
         measureConfig: [] as IMeasure[],
         backgroudColor: '#000',
+    });
+    const radarHeightRange = computed<[number, number]>(() => {
+        const fallback: [number, number] = [config.pointInfo.min.z || -10, config.pointInfo.max.z || 10];
+        const position = editor.radarPointsData?.position;
+        return utils.getHeightRangeByGroundAndMax(position || [], fallback);
+    });
+    const radarColorCodeBg = computed(() => {
+        const colors = renderUtils.getThemeColor(config.radarEdgeColor);
+        const [min, max] = config.radarPointHeight;
+        const [totalMin, totalMax] = radarHeightRange.value;
+        const mapLinear = (value: number) => {
+            const height = THREE.MathUtils.mapLinear(value, 0, colors.length - 1, min, max);
+            return THREE.MathUtils.mapLinear(height, totalMin, totalMax, 0, 100);
+        };
+        const color = [`${config.radarEdgeColor[0]} 0%`, `${config.radarEdgeColor[0]} ${mapLinear(0)}%`];
+        colors.forEach((item, index) => {
+            color.push(`${item} ${mapLinear(index)}%`);
+        });
+        color.push(
+            `${config.radarEdgeColor[1]} ${mapLinear(colors.length - 1)}%`,
+            `${config.radarEdgeColor[1]} 100%`,
+        );
+        return `linear-gradient(90deg, ${color.join(',')})`;
+    });
+    const _radarPointHeight = computed<[number, number]>(() => {
+        const [min, max] = radarHeightRange.value;
+        return config.radarPointHeight.map((value) => {
+            return THREE.MathUtils.clamp(value, min, max);
+        }) as [number, number];
     });
     onMounted(() => {
         onMeasureSwitch();
@@ -433,26 +585,40 @@
             case 'intensity':
                 options.openIntensity = config.openIntensity ? 1.0 : -1.0;
                 break;
+            case 'pointAutoNormalize':
+                editor.setPointAutoNormalize(config.pointAutoNormalize);
+                return;
             case 'brightness':
                 options.brightness = config.brightness;
                 break;
+            case 'lidarOpacity':
+                pc.setPointOpacity(config.lidarOpacity);
+                return;
             case 'pointLayerMode':
                 pc.setPointLayerMode(config.pointLayerMode);
                 return;
             case 'radarOpacity':
                 pc.setRadarOpacity(config.radarOpacity);
                 return;
-            case 'radarVisible':
-                pc.setRadarVisible(config.radarVisible);
-                return;
             case 'radarColorMode':
                 pc.setRadarUniforms({ colorMode: config.radarColorMode });
                 return;
-            case 'radarColorAttr':
-                pc.setRadarColorAttr(config.radarColorAttr);
+            case 'radarOpenIntensity':
+                pc.setRadarOpenIntensity(config.radarOpenIntensity);
                 return;
             case 'radarAutoNormalize':
                 pc.setRadarAutoNormalize(config.radarAutoNormalize);
+                return;
+            case 'radarPointHeight':
+                pc.setRadarUniforms({
+                    pointHeight: new THREE.Vector2().fromArray(config.radarPointHeight),
+                });
+                return;
+            case 'radarEdgeColor':
+                pc.setRadarUniforms({ edgeColor: config.radarEdgeColor });
+                return;
+            case 'radarSingleColor':
+                pc.setRadarUniforms({ singleColor: config.radarSingleColor });
                 return;
             case 'intensityRange':
                 options.intensityRange = new THREE.Vector2(
@@ -480,12 +646,56 @@
     function onResetIntensity() {
         config.pointIntensity = [0, 255];
     }
+    function onResetRadarHeight() {
+        config.radarPointHeight = [...radarHeightRange.value] as [number, number];
+        updateRadarHeight(true);
+    }
+    function onChangeRadarHeight(value: [number, number]) {
+        config.radarPointHeight = value;
+        updateRadarHeight();
+    }
+    function onBlurRadarHeight() {
+        const [rangeMin, rangeMax] = radarHeightRange.value;
+        const pointHeight = config.radarPointHeight;
+        if (isNaN(pointHeight[0]) || utils.empty(pointHeight[0])) {
+            pointHeight[0] = rangeMin;
+        }
+        if (isNaN(pointHeight[1]) || utils.empty(pointHeight[1])) {
+            pointHeight[1] = rangeMax;
+        }
+        updateRadarHeight();
+    }
+    function updateRadarHeight(force = false) {
+        if (config.radarPointHeight.find((value) => isNaN(value) || utils.empty(value))) {
+            return;
+        }
+        if (force) {
+            update('radarPointHeight');
+            update('radarEdgeColor');
+            return;
+        }
+        update('radarPointHeight');
+        update('radarEdgeColor');
+    }
+    function onResetRadarColor() {
+        if (config.radarColorMode === ColorModeEnum.PURE) {
+            config.radarSingleColor = '#87abff';
+            update('radarSingleColor');
+            return;
+        }
+        config.radarEdgeColor = ['#000dff', '#ff0000'];
+        update('radarEdgeColor');
+    }
     function onResetBrightness() {
         config.brightness = 1;
         update('brightness');
     }
+    function onResetLidarOpacity() {
+        config.lidarOpacity = 1;
+        update('lidarOpacity');
+    }
     function onResetRadarOpacity() {
-        config.radarOpacity = 0.5;
+        config.radarOpacity = 1;
         update('radarOpacity');
     }
     watch(
@@ -510,9 +720,9 @@
     );
 
     watch(
-        () => config.radarVisible,
+        () => config.pointAutoNormalize,
         () => {
-            update('radarVisible');
+            update('pointAutoNormalize');
         },
     );
 
@@ -531,9 +741,9 @@
     );
 
     watch(
-        () => config.radarColorAttr,
+        () => config.radarOpenIntensity,
         () => {
-            update('radarColorAttr');
+            update('radarOpenIntensity');
         },
     );
 
@@ -545,20 +755,28 @@
     );
 
     watch(
-        () => [config.radarHasIntensity, config.radarHasSnr],
-        ([hasIntensity, hasSnr]) => {
-            if (config.radarColorAttr === 'intensity' && !hasIntensity && hasSnr) {
-                config.radarColorAttr = 'snr';
+        () => radarHeightRange.value,
+        (range) => {
+            const [rangeMin, rangeMax] = range;
+            const [min, max] = config.radarPointHeight;
+            if (!isFinite(min) || !isFinite(max)) {
+                config.radarPointHeight = [...range] as [number, number];
+                updateRadarHeight(true);
                 return;
             }
-            if (config.radarColorAttr === 'snr' && !hasSnr && hasIntensity) {
-                config.radarColorAttr = 'intensity';
+            const nextMin = THREE.MathUtils.clamp(min, rangeMin, rangeMax);
+            const nextMax = THREE.MathUtils.clamp(max, rangeMin, rangeMax);
+            if (nextMin > nextMax) {
+                config.radarPointHeight = [...range] as [number, number];
+                updateRadarHeight(true);
                 return;
             }
-            if (!hasIntensity && !hasSnr) {
-                config.radarColorAttr = 'intensity';
+            if (nextMin !== min || nextMax !== max) {
+                config.radarPointHeight = [nextMin, nextMax];
+                updateRadarHeight(true);
             }
         },
+        { immediate: true },
     );
 
     watch(
@@ -592,6 +810,21 @@
 
 <style lang="less">
     .setting {
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 4px;
+        box-sizing: border-box;
+
+        .section-divider {
+            height: 1px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .radar-height-title,
+        .radar-color-item {
+            margin-left: -14px;
+        }
         .reset {
             border: 1px solid #6d7278;
             color: #6d7278;

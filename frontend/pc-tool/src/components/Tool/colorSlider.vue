@@ -165,6 +165,7 @@
     import { useInjectEditor } from '../../state';
     import * as locale from './lang';
     import { utils as renderUtils } from 'pc-render';
+    import { formatInputNumberValue } from './numberFormat';
 
     const editor = useInjectEditor();
     const config = editor.state.config;
@@ -206,22 +207,22 @@
     const update = (type: 'pointHeight' | 'edgeColor' | 'singleColor' | 'pointVelocity') => {
         switch (type) {
             case 'edgeColor':
-                editor.pc.setSharedPointUniforms({
+                editor.pc.setPointUniforms({
                     edgeColor: config.edgeColor,
                 });
                 break;
             case 'singleColor':
-                editor.pc.setSharedPointUniforms({
+                editor.pc.setPointUniforms({
                     singleColor: config.singleColor,
                 });
                 break;
             case 'pointVelocity':
-                editor.pc.setSharedPointUniforms({
+                editor.pc.setPointUniforms({
                     pointVelocity: new THREE.Vector2().fromArray(config.pointVelocity),
                 });
                 break;
             case 'pointHeight':
-                editor.pc.setSharedPointUniforms({
+                editor.pc.setPointUniforms({
                     pointHeight: new THREE.Vector2().fromArray(config.pointHeight),
                 });
                 editor.pc.ground.plane.constant = config.pointHeight[0];
@@ -295,12 +296,7 @@
     }
 
     function formatter(value: any) {
-        const n = ('' + value).split('.');
-        if (n[1] && n[1].length > 1) {
-            return Number(value).toFixed(1);
-        } else {
-            return value;
-        }
+        return formatInputNumberValue(value);
     }
     function onBlur() {
         const pointHeight = config.pointHeight;

@@ -42,6 +42,18 @@ export default class ConfigManager {
         pointInfo.hasIntensity = !!intensityRange;
         pointInfo.hasVelocity = velocity?.count > 0;
         pointInfo.hasRGB = color?.count > 0;
+        if (!intensityRange && pointInfo.hasIntensity) {
+            const values = (points.geometry.getAttribute('intensity') as THREE.BufferAttribute).array;
+            let min = Infinity;
+            let max = -Infinity;
+            for (let i = 0; i < values.length; i++) {
+                min = Math.min(min, Number(values[i]));
+                max = Math.max(max, Number(values[i]));
+            }
+            if (isFinite(min) && isFinite(max)) {
+                intensityRange = [min, max];
+            }
+        }
         if (intensityRange) {
             pointInfo.intensityRange.set(intensityRange[0], intensityRange[1]);
             config.pointIntensity = [

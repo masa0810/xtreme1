@@ -48,6 +48,22 @@ describe('PointCloud', () => {
         vi.unstubAllGlobals();
     });
 
+    it('Radar Visible の有無に依存せずレイヤーモードのみで可視性を制御する', () => {
+        vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
+        const pc = new PointCloud();
+        const lidarPoints = pc.getOrCreateLidarPoints();
+        const radarPoints = pc.getOrCreateRadarPoints();
+        expect('setRadarVisible' in (pc as any)).toBe(false);
+        pc.setPointLayerMode('lidar');
+        expect(lidarPoints.visible).toBe(true);
+        expect(radarPoints.visible).toBe(false);
+
+        pc.setPointLayerMode('radar');
+        expect(lidarPoints.visible).toBe(false);
+        expect(radarPoints.visible).toBe(true);
+        vi.unstubAllGlobals();
+    });
+
     it('LiDAR と Radar の色設定を独立して更新できる', () => {
         vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
         const pc = new PointCloud();
@@ -59,16 +75,25 @@ describe('PointCloud', () => {
         vi.unstubAllGlobals();
     });
 
-    it('Radar 属性を選択して自動正規化を切り替えできる', () => {
+    it('LiDAR と Radar の opacity を独立して更新できる', () => {
+        vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
+        const pc = new PointCloud();
+        pc.setPointOpacity(0.2);
+        pc.setRadarOpacity(0.7);
+
+        expect(pc.material.getUniforms('globalOpacity')).toBe(0.2);
+        expect(pc.radarMaterial.getUniforms('globalOpacity')).toBe(0.7);
+        vi.unstubAllGlobals();
+    });
+
+    it('Radar の自動正規化を切り替えできる', () => {
         vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
         const pc = new PointCloud();
         pc.setRadarPointCloudData({
             position: [0, 0, 0, 1, 1, 1],
-            intensity: [10, 20],
-            snr: [100, 200],
+            intensity: [100, 200],
         });
 
-        pc.setRadarColorAttr('snr');
         const normalized = pc
             .getOrCreateRadarPoints()
             .geometry.getAttribute('intensity') as THREE.BufferAttribute;
@@ -82,18 +107,37 @@ describe('PointCloud', () => {
         vi.unstubAllGlobals();
     });
 
-    it('選択属性が欠損しても Radar は利用可能な属性へフォールバックする', () => {
+    it('Radar は intensity 欠損時に snr を利用できる', () => {
         vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
         const pc = new PointCloud();
-        pc.setRadarColorAttr('snr');
         pc.setRadarPointCloudData({
             position: [0, 0, 0, 1, 1, 1],
-            intensity: [3, 9],
+            snr: [3, 9],
         });
         const intensity = pc
             .getOrCreateRadarPoints()
             .geometry.getAttribute('intensity') as THREE.BufferAttribute;
         expect(pc.radarMaterial.option.hasIntensity).toBe(true);
+        expect(intensity.array[0]).toBe(0);
+        expect(intensity.array[1]).toBe(255);
+        vi.unstubAllGlobals();
+    });
+
+    it('LiDAR の自動正規化を切り替えできる', () => {
+        vi.stubGlobal('requestAnimationFrame', ((cb: any) => setTimeout(() => cb(0), 0)) as any);
+        const pc = new PointCloud();
+        pc.setPointCloudData({
+            position: [0, 0, 0, 1, 1, 1],
+            intensity: [10, 20],
+        });
+        let intensity = pc
+            .getOrCreateLidarPoints()
+            .geometry.getAttribute('intensity') as THREE.BufferAttribute;
+        expect(intensity.array[0]).toBe(10);
+        expect(intensity.array[1]).toBe(20);
+
+        pc.setPointAutoNormalize(true);
+        intensity = pc.getOrCreateLidarPoints().geometry.getAttribute('intensity') as THREE.BufferAttribute;
         expect(intensity.array[0]).toBe(0);
         expect(intensity.array[1]).toBe(255);
         vi.unstubAllGlobals();
