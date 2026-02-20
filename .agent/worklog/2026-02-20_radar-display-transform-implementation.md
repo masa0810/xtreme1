@@ -36,3 +36,8 @@
 - 13:12 #test `position.spec.ts` を追加し、同一データ時に LiDAR と同じ下限（ground）を使うことを固定した。
 - 13:12 #test `npm --prefix frontend/pc-tool run test:unit` を実行し、22 tests passed を確認した。
 - 13:12 #test `npm --prefix frontend/pc-tool run build` を実行し、build 成功を確認した（既知 warning のみ）。
+- 13:57 #debug LiDAR `Auto Normalize` ON 時に Intensity セクションが消える事象を再現し、`ConfigManager.updatePointConfig` の `hasIntensity` 判定順序不整合を根因として特定した。
+- 13:58 #test `ConfigManager.spec.ts` を追加して再現テストを先行作成し、失敗（`hasIntensity=false`）を確認した。
+- 13:58 #impl `ConfigManager` で `intensity` 属性存在時に `hasIntensity` を維持するよう修正し、`Auto Normalize` 切替後も LiDAR 強度 UI が消えないようにした。
+- 13:58 #test `npm --prefix frontend/pc-tool run test:unit -- src/packages/pc-editor/common/ConfigManager.spec.ts src/packages/pc-render/PointCloud.spec.ts` を実行し、11 tests passed を確認した。
+- 13:59 #test Playwright で `datasetId=3&dataId=29` を用いた ON/OFF 切替の前後スクリーンショットを取得した（`2026-02-20_lidar-autonorm_before_toggle.png` / `2026-02-20_lidar-autonorm_after_toggle_on.png` / `2026-02-20_lidar-autonorm_after_toggle_off.png`）。

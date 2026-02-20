@@ -39,11 +39,13 @@ export default class ConfigManager {
         const velocity = points.geometry.getAttribute('velocity') as THREE.BufferAttribute;
         let pointIntensity = config.pointIntensity;
         let pointInfo = config.pointInfo;
-        pointInfo.hasIntensity = !!intensityRange;
+        const intensityAttribute = points.geometry.getAttribute('intensity') as THREE.BufferAttribute;
+        const hasIntensityAttribute = !!intensityAttribute && intensityAttribute.count > 0;
+        pointInfo.hasIntensity = !!intensityRange || hasIntensityAttribute;
         pointInfo.hasVelocity = velocity?.count > 0;
         pointInfo.hasRGB = color?.count > 0;
         if (!intensityRange && pointInfo.hasIntensity) {
-            const values = (points.geometry.getAttribute('intensity') as THREE.BufferAttribute).array;
+            const values = intensityAttribute.array;
             let min = Infinity;
             let max = -Infinity;
             for (let i = 0; i < values.length; i++) {
