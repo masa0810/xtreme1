@@ -57,7 +57,7 @@ services:
           "curl",
           "--silent",
           "-f",
-          "http://localhost:9000/minio/health/ready"
+          "http://minio:9000/minio/health/ready"
         ]
       interval: 10s
       timeout: 10s
