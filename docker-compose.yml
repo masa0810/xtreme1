@@ -64,9 +64,11 @@ services:
       start_period: 10s
       retries: 10
   backend:
+    # By default, Compose will pull image from Docker Hub when no local image found.
     image: basicai/xtreme1-backend:v0.9.1-islab
-    pull_policy: never
-    build: ./backend
+    pull_policy: missing
+    # Uncomment this line and comment previous line to build image locally, not pull from Docker Hub.
+    # build: ./backend
     ports:
       - 8290:8080
     # volumes:
@@ -95,24 +97,24 @@ services:
   frontend:
     # By default, Compose will pull image from Docker Hub when no local image found.
     image: basicai/xtreme1-frontend:v0.9.1-islab
-    pull_policy: never
+    pull_policy: missing
     # Uncomment this line and comment previous line to build image locally, not pull from Docker Hub.
     # build: ./frontend
     ports:
       - 8291:80
   pcd-tools:
     image: basicai/xtreme1-pcd-tools
-    pull_policy: always
+    pull_policy: missing
     ports:
       - 8295:5000
   image-vect-visualization:
     image: basicai/xtreme1-image-vect-visualization
-    pull_policy: always
+    pull_policy: missing
     ports:
       - 8294:5000
   image-object-detection:
     image: basicai/xtreme1-image-object-detection
-    pull_policy: always
+    pull_policy: missing
     ports:
       - 8292:5000
     # You need to explicitly specify model profile to start this service.
@@ -121,7 +123,7 @@ services:
     runtime: nvidia
   point-cloud-object-detection:
     image: basicai/xtreme1-point-cloud-object-detection
-    pull_policy: always
+    pull_policy: missing
     ports:
       - 8293:5000
     # You need to explicitly specify model profile to start this service.
