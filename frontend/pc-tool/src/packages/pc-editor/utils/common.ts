@@ -26,6 +26,85 @@ export function translateCameraConfig(info: any) {
     return { cameraExternal, cameraInternal };
 }
 
+function normalizeRadarExternal(info: any): number[] | null {
+    const radarExternal = info?.radarExternal || info?.radar_external;
+    if (!Array.isArray(radarExternal) || radarExternal.length !== 16) {
+        return null;
+    }
+
+    const normalized = radarExternal.map((value: unknown) => Number(value));
+    if (normalized.some((value) => !isFinite(value))) {
+        return null;
+    }
+
+    if (info?.rowMajor === false || isMatrixColumnMajor(normalized)) {
+        const matrix = new THREE.Matrix4();
+        matrix.elements = normalized;
+        matrix.transpose();
+        return [...matrix.elements];
+    }
+
+    return normalized;
+}
+
+export function getRadarTransformMatrix(radarConfigs?: any[]): THREE.Matrix4 | null {
+    if (!Array.isArray(radarConfigs) || radarConfigs.length === 0) {
+        return null;
+    }
+
+    for (const radarConfig of radarConfigs) {
+        const rowMajorMatrix = normalizeRadarExternal(radarConfig);
+        if (!rowMajorMatrix) {
+            continue;
+        }
+
+        return new THREE.Matrix4().set(
+            rowMajorMatrix[0],
+            rowMajorMatrix[1],
+            rowMajorMatrix[2],
+            rowMajorMatrix[3],
+            rowMajorMatrix[4],
+            rowMajorMatrix[5],
+            rowMajorMatrix[6],
+            rowMajorMatrix[7],
+            rowMajorMatrix[8],
+            rowMajorMatrix[9],
+            rowMajorMatrix[10],
+            rowMajorMatrix[11],
+            rowMajorMatrix[12],
+            rowMajorMatrix[13],
+            rowMajorMatrix[14],
+            rowMajorMatrix[15],
+        );
+    }
+
+    return null;
+}
+
+export function transformPointCloudPosition(pointsData: any, matrix: THREE.Matrix4) {
+    const position = pointsData?.position;
+    if (!Array.isArray(position) || position.length < 3 || position.length % 3 !== 0) {
+        return pointsData;
+    }
+
+    const vector = new THREE.Vector3();
+    const transformedPosition = new Array<number>(position.length);
+
+    for (let i = 0; i < position.length; i += 3) {
+        vector.set(Number(position[i]), Number(position[i + 1]), Number(position[i + 2]));
+        vector.applyMatrix4(matrix);
+
+        transformedPosition[i] = vector.x;
+        transformedPosition[i + 1] = vector.y;
+        transformedPosition[i + 2] = vector.z;
+    }
+
+    return {
+        ...pointsData,
+        position: transformedPosition,
+    };
+}
+
 export function clamRange(v: number, min: number, max: number) {
     return Math.max(Math.min(max, v), min);
 }

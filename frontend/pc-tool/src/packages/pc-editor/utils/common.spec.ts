@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createViewConfig } from './common';
+import { createViewConfig, getRadarTransformMatrix, transformPointCloudPosition } from './common';
 
 describe('createViewConfig', () => {
     it('LiDAR がない場合に points を解決できない', () => {
@@ -106,5 +106,35 @@ describe('createViewConfig', () => {
             radar: [{ radar_external: [1, 0, 0, 0], rowMajor: true }],
         } as any);
         expect(withRadar.radarConfigs).toHaveLength(1);
+    });
+
+    it('radar_external の rowMajor=false を行優先へ補正し行列を生成する', () => {
+        const matrix = getRadarTransformMatrix([
+            {
+                radar_external: [
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    10, 20, 30, 1,
+                ],
+                rowMajor: false,
+            },
+        ] as any);
+
+        expect(matrix).not.toBeNull();
+        const transformed = transformPointCloudPosition(
+            { position: [1, 2, 3], intensity: [7] },
+            matrix!,
+        );
+        expect(transformed.position).toEqual([11, 22, 33]);
+    });
+
+    it('有効な radar_external がない場合は null を返す', () => {
+        const matrix = getRadarTransformMatrix([
+            { radar_external: [1, 2, 3], rowMajor: true },
+            { radar_external: Array(16).fill(NaN), rowMajor: true },
+        ] as any);
+
+        expect(matrix).toBeNull();
     });
 });

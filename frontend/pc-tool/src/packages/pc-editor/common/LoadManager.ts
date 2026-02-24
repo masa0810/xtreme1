@@ -280,7 +280,16 @@ export default class LoadManager {
 
         try {
             const radarData = await this.editor.dataResource.loadPoints(radarUrl);
-            this.editor.setRadarPointCloudData(radarData);
+            const radarTransformMatrix = utils.getRadarTransformMatrix(data.radarConfigs);
+            if (Array.isArray(data.radarConfigs) && data.radarConfigs.length > 0 && !radarTransformMatrix) {
+                console.warn(
+                    '[LoadManager] Radar transform skipped: invalid radar_external matrix in camera_config',
+                );
+            }
+            const transformedRadarData = radarTransformMatrix
+                ? utils.transformPointCloudPosition(radarData, radarTransformMatrix)
+                : radarData;
+            this.editor.setRadarPointCloudData(transformedRadarData);
         } catch (error) {
             console.warn('[LoadManager] Radar pointcloud load failed:', radarUrl, error);
             this.editor.clearRadarPointCloudData();
